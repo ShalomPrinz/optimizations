@@ -4,12 +4,9 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-// Simple, unoptimized vowel counting
-// This is the baseline implementation
-
 // Count array for each character
-int letterCounts[26];  // a-z counts
-int digitCounts[10];   // 0-9 counts
+int letterCounts[26] = {0};  // a-z counts
+int digitCounts[10] = {0};   // 0-9 counts
 
 bool isLowerVowel(char c) {
     return c=='a' || c=='e' || c=='i' || c=='o' || c=='u';
@@ -86,20 +83,29 @@ int findLongestPiMatch(char* buf, int size) {
 // Hamming match = count of positions where characters match (ignores mismatches in between)
 void findBestHammingMatch(char* buf, int size) {
     char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
-    int piLength = 100;
     
     int bestIndex = -1;
     int bestHammingScore = 0;
     
     // Check every possible starting position in buffer
-    for (int i = 0; i <= size - piLength; i++) {
+    int piLength = 100;
+    int end = size - piLength;
+    for (int i = 0; i <= end; i++) {
         int hammingScore = 0;
         
         // Count matching characters at each position (Hamming similarity)
-        for (int j = 0; j < piLength; j++) {
-            if (buf[i + j] == piDigits[j]) {
-                hammingScore++;
-            }
+        char *bufptr = buf + i;
+        int j = 0;
+        for (; j < piLength - 4; j += 4) {
+            if (bufptr[j] == piDigits[j]) hammingScore++;
+            if (bufptr[j + 1] == piDigits[j + 1]) hammingScore++;
+            if (bufptr[j + 2] == piDigits[j + 2]) hammingScore++;
+            if (bufptr[j + 3] == piDigits[j + 3]) hammingScore++;
+        }
+
+        // Handle remaining chars
+        for (; j < piLength; j++) {
+            if (bufptr[j] == piDigits[j]) hammingScore++;
         }
         
         // Track the best match
@@ -123,15 +129,16 @@ void findBestHammingMatch(char* buf, int size) {
         }
         printf("\n");
         
+        char *bestbufptr = buf + bestIndex;
         printf("Buf: ");
         for (int j = 0; j < piLength; j++) {
-            printf("%c", buf[bestIndex + j]);
+            printf("%c", bestbufptr[j]);
         }
         printf("\n");
         
         printf("     ");
         for (int j = 0; j < piLength; j++) {
-            if (buf[bestIndex + j] == piDigits[j]) {
+            if (bestbufptr[j] == piDigits[j]) {
                 printf("^");  // Match
             } else {
                 printf(" ");  // Mismatch
@@ -148,25 +155,19 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     int digitCount = 0;    // Digits at those positions
     int positionsChecked = 0;
     
-    // Jump by 1000 each time - this is TERRIBLE for cache!
-    // Each access is ~1000 bytes apart, far exceeding cache line size (64 bytes)
-    // Every single access will likely be a cache miss
-    for (int i = 0; i < size; i += 1000) {
-        char c = buf[i];
+    char *ptr = buf;
+    char *end = buf + size;
+    while (ptr < end) {
+        // First
+        char c = *ptr;
         positionsChecked++;
-        
         // Count '3' at these sparse positions
-        if (c == '3') {
-            count3++;
-        }
-        
+        if (c == '3') count3++;
         // Also count vowels and digits for comparison
-        if (isVowel(c)) {
-            vowelCount++;
-        }
-        if (isDigit(c)) {
-            digitCount++;
-        }
+        if (isVowel(c)) vowelCount++;
+        if (isDigit(c)) digitCount++;
+
+        ptr += 1000;  // Move to next sparse address
     }
     
     printf("Positions checked: %d\n", positionsChecked);
@@ -176,14 +177,6 @@ void analyzeAtSparseAddresses(char* buf, int size) {
 }
 
 int countVowels(char* buf, int size) {
-    // Reset counts
-    for (int i = 0; i < 26; i++) {
-        letterCounts[i] = 0;
-    }
-    for (int i = 0; i < 10; i++) {
-        digitCounts[i] = 0;
-    }
-    
     int vowelCount = 0;
     
     // pi digits check - find longest matching substring
@@ -195,19 +188,19 @@ int countVowels(char* buf, int size) {
     
     // analysis - counts '3' at sparse addresses
     analyzeAtSparseAddresses(buf, size);
-    
-    for (int i = 0; i < size; i++) {
-        char c = buf[i];
-        
+
+    char *ptr = buf;
+    char *len = buf + size;
+    while (ptr < len) {
+        char c = *ptr;
         // Count this character
         countCharacter(c);
-        
         // Check if vowel
         if (isVowel(c)) {
             vowelCount++;
         }
+        ptr++;
     }
-    
     return vowelCount;
 }
 
