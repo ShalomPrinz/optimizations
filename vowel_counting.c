@@ -12,63 +12,11 @@ int letterCounts[26];  // a-z counts
 int digitCounts[10];   // 0-9 counts
 
 bool isLowerVowel(char c) {
-    if (c == 'a') return true;
-    if (c == 'b') return false;
-    if (c == 'c') return false;
-    if (c == 'd') return false;
-    if (c == 'e') return true;
-    if (c == 'f') return false;
-    if (c == 'g') return false;
-    if (c == 'h') return false;
-    if (c == 'i') return true;
-    if (c == 'j') return false;
-    if (c == 'k') return false;
-    if (c == 'l') return false;
-    if (c == 'm') return false;
-    if (c == 'n') return false;
-    if (c == 'o') return true;
-    if (c == 'p') return false;
-    if (c == 'q') return false;
-    if (c == 'r') return false;
-    if (c == 's') return false;
-    if (c == 't') return false;
-    if (c == 'u') return true;
-    if (c == 'v') return false;
-    if (c == 'w') return false;
-    if (c == 'x') return false;
-    if (c == 'y') return false;
-    if (c == 'z') return false;
-    return false;
+    return c=='a' || c=='e' || c=='i' || c=='o' || c=='u';
 }
 
 bool isUpperVowel(char c) {
-    if (c == 'A') return true;
-    if (c == 'B') return false;
-    if (c == 'C') return false;
-    if (c == 'D') return false;
-    if (c == 'E') return true;
-    if (c == 'F') return false;
-    if (c == 'G') return false;
-    if (c == 'H') return false;
-    if (c == 'I') return true;
-    if (c == 'J') return false;
-    if (c == 'K') return false;
-    if (c == 'L') return false;
-    if (c == 'M') return false;
-    if (c == 'N') return false;
-    if (c == 'O') return true;
-    if (c == 'P') return false;
-    if (c == 'Q') return false;
-    if (c == 'R') return false;
-    if (c == 'S') return false;
-    if (c == 'T') return false;
-    if (c == 'U') return true;
-    if (c == 'V') return false;
-    if (c == 'W') return false;
-    if (c == 'X') return false;
-    if (c == 'Y') return false;
-    if (c == 'Z') return false;
-    return false;
+    return c=='A' || c=='E' || c=='I' || c=='O' || c=='U';
 }
 
 bool isVowel(char c) {
@@ -76,77 +24,15 @@ bool isVowel(char c) {
 }
 
 bool isLowerLetter(char c) {
-    if (c == 'a') return true;
-    if (c == 'b') return true;
-    if (c == 'c') return true;
-    if (c == 'd') return true;
-    if (c == 'e') return true;
-    if (c == 'f') return true;
-    if (c == 'g') return true;
-    if (c == 'h') return true;
-    if (c == 'i') return true;
-    if (c == 'j') return true;
-    if (c == 'k') return true;
-    if (c == 'l') return true;
-    if (c == 'm') return true;
-    if (c == 'n') return true;
-    if (c == 'o') return true;
-    if (c == 'p') return true;
-    if (c == 'q') return true;
-    if (c == 'r') return true;
-    if (c == 's') return true;
-    if (c == 't') return true;
-    if (c == 'u') return true;
-    if (c == 'v') return true;
-    if (c == 'w') return true;
-    if (c == 'x') return true;
-    if (c == 'y') return true;
-    if (c == 'z') return true;
-    return false;
+    return c >= 'a' && c <= 'z';
 }
 
 bool isUpperLetter(char c) {
-    if (c == 'A') return true;
-    if (c == 'B') return true;
-    if (c == 'C') return true;
-    if (c == 'D') return true;
-    if (c == 'E') return true;
-    if (c == 'F') return true;
-    if (c == 'G') return true;
-    if (c == 'H') return true;
-    if (c == 'I') return true;
-    if (c == 'J') return true;
-    if (c == 'K') return true;
-    if (c == 'L') return true;
-    if (c == 'M') return true;
-    if (c == 'N') return true;
-    if (c == 'O') return true;
-    if (c == 'P') return true;
-    if (c == 'Q') return true;
-    if (c == 'R') return true;
-    if (c == 'S') return true;
-    if (c == 'T') return true;
-    if (c == 'U') return true;
-    if (c == 'V') return true;
-    if (c == 'W') return true;
-    if (c == 'X') return true;
-    if (c == 'Y') return true;
-    if (c == 'Z') return true;
-    return false;
+    return c >= 'A' && c <= 'Z';
 }
 
 bool isDigit(char c) {
-    if (c == '0') return true;
-    if (c == '1') return true;
-    if (c == '2') return true;
-    if (c == '3') return true;
-    if (c == '4') return true;
-    if (c == '5') return true;
-    if (c == '6') return true;
-    if (c == '7') return true;
-    if (c == '8') return true;
-    if (c == '9') return true;
-    return false;
+    return c >= '0' && c <= '9';
 }
 
 char toLower(char c) {
@@ -157,73 +43,13 @@ char toLower(char c) {
 }
 
 void countCharacter(char c) {
-    // Count lowercase letters - inefficient individual checks
-    if (c == 'a') letterCounts[0]++;
-    if (c == 'b') letterCounts[1]++;
-    if (c == 'c') letterCounts[2]++;
-    if (c == 'd') letterCounts[3]++;
-    if (c == 'e') letterCounts[4]++;
-    if (c == 'f') letterCounts[5]++;
-    if (c == 'g') letterCounts[6]++;
-    if (c == 'h') letterCounts[7]++;
-    if (c == 'i') letterCounts[8]++;
-    if (c == 'j') letterCounts[9]++;
-    if (c == 'k') letterCounts[10]++;
-    if (c == 'l') letterCounts[11]++;
-    if (c == 'm') letterCounts[12]++;
-    if (c == 'n') letterCounts[13]++;
-    if (c == 'o') letterCounts[14]++;
-    if (c == 'p') letterCounts[15]++;
-    if (c == 'q') letterCounts[16]++;
-    if (c == 'r') letterCounts[17]++;
-    if (c == 's') letterCounts[18]++;
-    if (c == 't') letterCounts[19]++;
-    if (c == 'u') letterCounts[20]++;
-    if (c == 'v') letterCounts[21]++;
-    if (c == 'w') letterCounts[22]++;
-    if (c == 'x') letterCounts[23]++;
-    if (c == 'y') letterCounts[24]++;
-    if (c == 'z') letterCounts[25]++;
-    
-    // Count uppercase letters - inefficient individual checks
-    if (c == 'A') letterCounts[0]++;
-    if (c == 'B') letterCounts[1]++;
-    if (c == 'C') letterCounts[2]++;
-    if (c == 'D') letterCounts[3]++;
-    if (c == 'E') letterCounts[4]++;
-    if (c == 'F') letterCounts[5]++;
-    if (c == 'G') letterCounts[6]++;
-    if (c == 'H') letterCounts[7]++;
-    if (c == 'I') letterCounts[8]++;
-    if (c == 'J') letterCounts[9]++;
-    if (c == 'K') letterCounts[10]++;
-    if (c == 'L') letterCounts[11]++;
-    if (c == 'M') letterCounts[12]++;
-    if (c == 'N') letterCounts[13]++;
-    if (c == 'O') letterCounts[14]++;
-    if (c == 'P') letterCounts[15]++;
-    if (c == 'Q') letterCounts[16]++;
-    if (c == 'R') letterCounts[17]++;
-    if (c == 'S') letterCounts[18]++;
-    if (c == 'T') letterCounts[19]++;
-    if (c == 'U') letterCounts[20]++;
-    if (c == 'V') letterCounts[21]++;
-    if (c == 'W') letterCounts[22]++;
-    if (c == 'X') letterCounts[23]++;
-    if (c == 'Y') letterCounts[24]++;
-    if (c == 'Z') letterCounts[25]++;
-    
-    // Count digits - inefficient individual checks
-    if (c == '0') digitCounts[0]++;
-    if (c == '1') digitCounts[1]++;
-    if (c == '2') digitCounts[2]++;
-    if (c == '3') digitCounts[3]++;
-    if (c == '4') digitCounts[4]++;
-    if (c == '5') digitCounts[5]++;
-    if (c == '6') digitCounts[6]++;
-    if (c == '7') digitCounts[7]++;
-    if (c == '8') digitCounts[8]++;
-    if (c == '9') digitCounts[9]++;
+    if (isLowerLetter(c)) {
+        letterCounts[c - 'a']++;
+    } else if (isUpperLetter(c)) {
+        letterCounts[c - 'A']++;
+    } else if (isDigit(c)) {
+        digitCounts[c - '0']++;
+    }
 }
 
 // function to find longest string that matches pi digits
