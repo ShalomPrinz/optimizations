@@ -49,33 +49,59 @@ void countCharacter(char c) {
     }
 }
 
-// function to find longest string that matches pi digits
 int findLongestPiMatch(char* buf, int size) {
-    // First 100 digits of pi: 3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067
-    char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
-    int piLength = 100;
+    static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
     int longestMatch = 0;
     
-    // search - check every position for longest match
-    for (int i = 0; i < size; i++) {
+    char* current_pos = buf;
+    int remaining_size = size;
+    while (remaining_size--) {
+        // early exit - if remaining buffer is smaller than the best we've found
+        if (remaining_size + 1 <= longestMatch) break;
+
         int currentMatch = 0;
-        bool isInRow = true;
+        const char* p_buf = current_pos;
+        const char* p_pi  = piDigits;
         
-        // Check how many consecutive pi digits match starting at position i
-        for (int j = 0; j < piLength && (i + j) < size; j++) {
-            if (buf[i + j] == piDigits[j] && isInRow) {
+        // 12 chunks x 8 bytes = 96
+        int chunks = 12; 
+        while (chunks--) {
+            // nested unrolling, stops at first mismatch
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}
+            goto update_record;
+        }
+
+        // 100 - 96 = 4 remaining chars
+        if (*p_buf++ == *p_pi++) {
+            currentMatch++;
+            if (*p_buf++ == *p_pi++) {
                 currentMatch++;
-            }
-            else {
-                isInRow = false;
+                if (*p_buf++ == *p_pi++) {
+                    currentMatch++;
+                    if (*p_buf++ == *p_pi++) {
+                        currentMatch++; 
+                    }
+                }
             }
         }
-        
-        // Update longest match found so far
+
+        // update longest if needed
+    update_record:
         if (currentMatch > longestMatch) {
             longestMatch = currentMatch;
-        }        
+        }
+        
+        // move to next buf char
+        current_pos++;
     }
+
     return longestMatch;
 }
 
