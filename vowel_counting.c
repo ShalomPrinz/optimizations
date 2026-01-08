@@ -8,46 +8,28 @@
 int letterCounts[26] = {0};  // a-z counts
 int digitCounts[10] = {0};   // 0-9 counts
 
-bool isLowerVowel(char c) {
-    return c=='a' || c=='e' || c=='i' || c=='o' || c=='u';
-}
+// lookup table for ASCII digits and letters
+static const unsigned char char_info[256] = {
+    // Digits: (index << 3) | IS_DIGIT
+    ['0']=0x02, ['1']=0x0a, ['2']=0x12, ['3']=0x1a, ['4']=0x22, 
+    ['5']=0x2a, ['6']=0x32, ['7']=0x3a, ['8']=0x42, ['9']=0x4a,
 
-bool isUpperVowel(char c) {
-    return c=='A' || c=='E' || c=='I' || c=='O' || c=='U';
-}
+    // Letters: (index << 3) | IS_LETTER | (IS_VOWEL if vowel)
+    ['A']=0x05, ['B']=0x09, ['C']=0x11, ['D']=0x19, ['E']=0x25, 
+    ['F']=0x29, ['G']=0x31, ['H']=0x39, ['I']=0x45, ['J']=0x49, 
+    ['K']=0x51, ['L']=0x59, ['M']=0x61, ['N']=0x69, ['O']=0x75, 
+    ['P']=0x79, ['Q']=0x81, ['R']=0x89, ['S']=0x91, ['T']=0x99, 
+    ['U']=0xa5, ['V']=0xa9, ['W']=0xb1, ['X']=0xb9, ['Y']=0xc1, ['Z']=0xc9,
+    ['a']=0x05, ['b']=0x09, ['c']=0x11, ['d']=0x19, ['e']=0x25, 
+    ['f']=0x29, ['g']=0x31, ['h']=0x39, ['i']=0x45, ['j']=0x49, 
+    ['k']=0x51, ['l']=0x59, ['m']=0x61, ['n']=0x69, ['o']=0x75, 
+    ['p']=0x79, ['q']=0x81, ['r']=0x89, ['s']=0x91, ['t']=0x99, 
+    ['u']=0xa5, ['v']=0xa9, ['w']=0xb1, ['x']=0xb9, ['y']=0xc1, ['z']=0xc9
+};
 
-bool isVowel(char c) {
-    return isLowerVowel(c) || isUpperVowel(c);
-}
-
-bool isLowerLetter(char c) {
-    return c >= 'a' && c <= 'z';
-}
-
-bool isUpperLetter(char c) {
-    return c >= 'A' && c <= 'Z';
-}
-
-bool isDigit(char c) {
-    return c >= '0' && c <= '9';
-}
-
-char toLower(char c) {
-    if (isUpperLetter(c)) {
-        return c + ('a' - 'A');
-    }
-    return c;
-}
-
-void countCharacter(char c) {
-    if (isLowerLetter(c)) {
-        letterCounts[c - 'a']++;
-    } else if (isUpperLetter(c)) {
-        letterCounts[c - 'A']++;
-    } else if (isDigit(c)) {
-        digitCounts[c - '0']++;
-    }
-}
+#define IS_LETTER(info)   ((info) & 0x01)
+#define IS_DIGIT(info)    ((info) & 0x02)
+#define IS_VOWEL(info)    ((info) & 0x04)
 
 int findLongestPiMatch(char* buf, int size) {
     static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
@@ -186,12 +168,13 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     while (ptr < end) {
         // First
         char c = *ptr;
+        if (c == '3') count3++;
+        unsigned char info = char_info[(unsigned char)c];
         positionsChecked++;
         // Count '3' at these sparse positions
-        if (c == '3') count3++;
         // Also count vowels and digits for comparison
-        if (isVowel(c)) vowelCount++;
-        if (isDigit(c)) digitCount++;
+        if (IS_VOWEL(info)) vowelCount++;
+        if (IS_DIGIT(info)) digitCount++;
 
         ptr += 1000;  // Move to next sparse address
     }
@@ -216,16 +199,21 @@ int countVowels(char* buf, int size) {
     analyzeAtSparseAddresses(buf, size);
 
     char *ptr = buf;
-    char *len = buf + size;
-    while (ptr < len) {
-        char c = *ptr;
-        // Count this character
-        countCharacter(c);
-        // Check if vowel
-        if (isVowel(c)) {
-            vowelCount++;
+    while (size--) {
+        // Count character
+        unsigned char info = char_info[(unsigned char)*ptr++];
+        if (IS_LETTER(info)) {
+            // Top 5 bits contain (0..25)
+            letterCounts[info >> 3]++;
+            // Check if vowel
+            if (IS_VOWEL(info)) {
+                vowelCount++;
+            }
+        } 
+        else if (IS_DIGIT(info)) {
+            // Top 5 bits contain (0..9)
+            digitCounts[info >> 3]++;
         }
-        ptr++;
     }
     return vowelCount;
 }
