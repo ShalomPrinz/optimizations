@@ -163,20 +163,20 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     int digitCount = 0;    // Digits at those positions
     int positionsChecked = 0;
     
+    // calc steps once instead of checking ptr < end each iteration
+    int steps = (size + 999) / 1000;
     char *ptr = buf;
-    char *end = buf + size;
-    while (ptr < end) {
-        // First
+    while (steps--) {
         char c = *ptr;
-        if (c == '3') count3++;
-        unsigned char info = char_info[(unsigned char)c];
-        positionsChecked++;
         // Count '3' at these sparse positions
-        // Also count vowels and digits for comparison
-        if (IS_VOWEL(info)) vowelCount++;
-        if (IS_DIGIT(info)) digitCount++;
-
-        ptr += 1000;  // Move to next sparse address
+        if (c == '3') count3++;
+        // Use lookup table to count vowels and digits
+        unsigned char info = char_info[(unsigned char)c];
+        vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
+        digitCount += IS_DIGIT(info) >> 1; // count second bit (digit)
+        
+        positionsChecked++;
+        ptr += 1000; // Move to next sparse address
     }
     
     printf("Positions checked: %d\n", positionsChecked);
@@ -205,10 +205,7 @@ int countVowels(char* buf, int size) {
         if (IS_LETTER(info)) {
             // Top 5 bits contain (0..25)
             letterCounts[info >> 3]++;
-            // Check if vowel
-            if (IS_VOWEL(info)) {
-                vowelCount++;
-            }
+            vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
         } 
         else if (IS_DIGIT(info)) {
             // Top 5 bits contain (0..9)
