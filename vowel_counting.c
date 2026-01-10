@@ -1,6 +1,6 @@
 /* vowel_counting_original.c */
 /* 123456789 Israel Israeli */
-
+#include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 
@@ -90,36 +90,54 @@ int findLongestPiMatch(char* buf, int size) {
 // Find the position with highest Hamming match to 100 digits of pi
 // Hamming match = count of positions where characters match (ignores mismatches in between)
 void findBestHammingMatch(char* buf, int size) {
-    char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
+    static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
     
     int bestIndex = -1;
     int bestHammingScore = 0;
     
     // Check every possible starting position in buffer
     int piLength = 100;
-    int end = size - piLength;
-    for (int i = 0; i <= end; i++) {
+    char *ptr = buf;
+    char *end = buf + size - piLength;
+    while (ptr++ < end) {
         int hammingScore = 0;
         
-        // Count matching characters at each position (Hamming similarity)
-        char *bufptr = buf + i;
-        int j = 0;
-        for (; j < piLength - 4; j += 4) {
-            if (bufptr[j] == piDigits[j]) hammingScore++;
-            if (bufptr[j + 1] == piDigits[j + 1]) hammingScore++;
-            if (bufptr[j + 2] == piDigits[j + 2]) hammingScore++;
-            if (bufptr[j + 3] == piDigits[j + 3]) hammingScore++;
+        // Process 8 bytes at a time using 64 bit int
+        for (int j = 0; j < piLength - 7; j += 8) {
+            // Load 8 bytes - assumes alignment is okay
+            uint64_t buf_word = *(uint64_t*)(ptr + j);
+            uint64_t pi_word = *(uint64_t*)(piDigits + j);
+            
+            // XOR: matching bytes = 0, otherwise non zero
+            uint64_t t = buf_word ^ pi_word;
+            // inisde each byte - propagate any set bits to MSB in byte
+            t |= t >> 1;
+            t |= t >> 2;
+            t |= t >> 4;
+            // save only LSB of each byte 
+            t &= 0x0101010101010101;
+            // invert - now matching bytes have 0x01, non-matching have 0x00
+            t = 0x0101010101010101 - t;
+            // sum up all bytes
+            hammingScore += (t * 0x0101010101010101) >> 56;
         }
 
-        // Handle remaining chars
-        for (; j < piLength; j++) {
-            if (bufptr[j] == piDigits[j]) hammingScore++;
-        }
-        
-        // Track the best match
+        // Process remaining 4 bytes with 32 bit int
+        uint32_t buf_word32 = *(uint32_t*)(ptr + 96);
+        uint32_t pi_word32 = *(uint32_t*)(piDigits + 96);
+
+        // Same xor logic as above just in 32 bits
+        uint32_t t32 = buf_word32 ^ pi_word32;
+        t32 |= t32 >> 1;
+        t32 |= t32 >> 2;
+        t32 |= t32 >> 4;
+        t32 &= 0x01010101;
+        t32 = 0x01010101 - t32;
+        hammingScore += (t32 * 0x01010101) >> 24;
+
         if (hammingScore > bestHammingScore) {
             bestHammingScore = hammingScore;
-            bestIndex = i;
+            bestIndex = ptr - buf;
         }
     }
     
