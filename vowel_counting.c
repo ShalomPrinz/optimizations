@@ -96,14 +96,13 @@ void findBestHammingMatch(char* buf, int size) {
     int bestHammingScore = 0;
     
     // Check every possible starting position in buffer
-    int piLength = 100;
     char *ptr = buf;
-    char *end = buf + size - piLength;
+    char *end = buf + size - 100;
     while (ptr++ < end) {
         int hammingScore = 0;
         
         // Process 8 bytes at a time using 64 bit int
-        for (int j = 0; j < piLength - 7; j += 8) {
+        for (int j = 0; j < 93; j += 8) {
             // Load 8 bytes - assumes alignment is okay
             uint64_t buf_word = *(uint64_t*)(ptr + j);
             uint64_t pi_word = *(uint64_t*)(piDigits + j);
@@ -150,20 +149,20 @@ void findBestHammingMatch(char* buf, int size) {
         // Print character-by-character comparison
         printf("Character-by-character comparison:\n");
         printf("Pi:  ");
-        for (int j = 0; j < piLength; j++) {
+        for (int j = 0; j < 100; j++) {
             printf("%c", piDigits[j]);
         }
         printf("\n");
         
         char *bestbufptr = buf + bestIndex;
         printf("Buf: ");
-        for (int j = 0; j < piLength; j++) {
+        for (int j = 0; j < 100; j++) {
             printf("%c", bestbufptr[j]);
         }
         printf("\n");
         
         printf("     ");
-        for (int j = 0; j < piLength; j++) {
+        for (int j = 0; j < 100; j++) {
             if (bestbufptr[j] == piDigits[j]) {
                 printf("^");  // Match
             } else {
@@ -179,12 +178,12 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     int count3 = 0;        // How many times '3' appears at index % 1000 == 0
     int vowelCount = 0;    // Vowels at those positions
     int digitCount = 0;    // Digits at those positions
-    int positionsChecked = 0;
     
     // calc steps once instead of checking ptr < end each iteration
     int steps = (size + 999) / 1000;
+    int current = steps;
     char *ptr = buf;
-    while (steps--) {
+    while (current--) {
         char c = *ptr;
         // Count '3' at these sparse positions
         if (c == '3') count3++;
@@ -193,11 +192,10 @@ void analyzeAtSparseAddresses(char* buf, int size) {
         vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
         digitCount += IS_DIGIT(info) >> 1; // count second bit (digit)
         
-        positionsChecked++;
         ptr += 1000; // Move to next sparse address
     }
     
-    printf("Positions checked: %d\n", positionsChecked);
+    printf("Positions checked: %d\n", steps);
     printf("Count of '3' at addresses divisible by 1000: %d\n", count3);
     printf("Vowels at sparse addresses: %d\n", vowelCount);
     printf("Digits at sparse addresses: %d\n", digitCount);
