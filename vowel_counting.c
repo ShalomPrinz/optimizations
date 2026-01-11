@@ -274,27 +274,17 @@ void findBestHammingMatch(char* buf, int size) {
     }
     
     // Print results
-    printf("=== Best Hamming Match to Pi (100 digits) ===\n");
-    printf("Best index: %d\n", bestIndex);
-    printf("Hamming score: %d/100 matches\n", bestHammingScore);
-    
+    printf("=== Best Hamming Match to Pi (100 digits) ===\nBest index: %d\nHamming score: %d/100 matches\n", bestIndex, bestHammingScore);    
     if (bestIndex >= 0) {
         // Print character-by-character comparison
-        printf("Character-by-character comparison:\n");
-        printf("Pi:  ");
-        for (int j = 0; j < 100; j++) {
-            printf("%c", piDigits[j]);
-        }
-        printf("\n");
+        printf("Character-by-character comparison:\nPi:  ");
+        fwrite(piDigits, 1, 100, stdout);
         
+        printf("\nBuf: ");
         char *bestbufptr = buf + bestIndex;
-        printf("Buf: ");
-        for (int j = 0; j < 100; j++) {
-            printf("%c", bestbufptr[j]);
-        }
-        printf("\n");
+        fwrite(bestbufptr, 1, 100, stdout);
+        printf("\n     ");
         
-        printf("     ");
         for (int j = 0; j < 100; j++) {
             if (bestbufptr[j] == piDigits[j]) {
                 printf("^");  // Match
@@ -328,10 +318,7 @@ void analyzeAtSparseAddresses(char* buf, int size) {
         ptr += 1000; // Move to next sparse address
     }
     
-    printf("Positions checked: %d\n", steps);
-    printf("Count of '3' at addresses divisible by 1000: %d\n", count3);
-    printf("Vowels at sparse addresses: %d\n", vowelCount);
-    printf("Digits at sparse addresses: %d\n", digitCount);
+    printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
 }
 
 int countVowels(char* buf, int size) {
