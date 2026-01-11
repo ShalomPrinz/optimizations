@@ -4,6 +4,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 // Count array for each character
 int letterCounts[26] = {0};  // a-z counts
 int digitCounts[10] = {0};   // 0-9 counts
@@ -34,17 +38,166 @@ static const unsigned char char_info[256] = {
 static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
 
 int findLongestPiMatch(char* buf, int size) {
-    int longestMatch = 0;
+    int NUM_PROCESSES = 20;
+    int chunk_size = size / NUM_PROCESSES;
+    pid_t pids[NUM_PROCESSES - 1];
     
-    char* current_pos = buf;
-    int remaining_size = size;
+    // Create child processes
+    for (int proc_id = 0; proc_id < NUM_PROCESSES - 1; proc_id++) {
+        pid_t pid = fork();
+        
+        if (pid < 0) {
+            // Fork failed, kill any children already created
+            for (int j = 0; j < proc_id; j++) {
+                kill(pids[j], SIGKILL);
+                wait(NULL);
+            }
+            // for simplicity, just reduce to single process
+            NUM_PROCESSES = 1;
+            goto parent_only;
+        }
+        
+        if (pid == 0) {
+            // handle chunk proc_id
+            int start = proc_id * chunk_size;
+            int end = start + chunk_size;
+            
+            int longestMatch = 0;
+            char* current_pos = buf + start;
+            int remaining_size = end - start;
+            
+            while (remaining_size--) {
+                // early exit
+                if (remaining_size + 1 <= longestMatch) break;
+                
+                int currentMatch = 0;
+                const char* p_buf = current_pos;
+                const char* p_pi = piDigits;
+                
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
+                }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+                
+                if (currentMatch > longestMatch) {
+                    longestMatch = currentMatch;
+                }
+                
+                current_pos++;
+            }
+            
+            // Exit with result (limited to 0-255 but assume piDigits is 100 chars)
+            _exit(longestMatch);
+        }
+        
+        // Parent stores child PID
+        pids[proc_id] = pid;
+    }
+    
+parent_only:
+    // Parent process: handle last chunk
+    int parent_id = NUM_PROCESSES - 1;
+    int start = parent_id * chunk_size;
+    int end = size;
+    
+    int longestMatch = 0;
+    char* current_pos = buf + start;
+    int remaining_size = end - start;
+    
     while (remaining_size--) {
-        // early exit - if remaining buffer is smaller than the best we've found
+        // early exit
         if (remaining_size + 1 <= longestMatch) break;
-
+        
         int currentMatch = 0;
         const char* p_buf = current_pos;
-        const char* p_pi  = piDigits;
+        const char* p_pi = piDigits;
         
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -137,17 +290,30 @@ int findLongestPiMatch(char* buf, int size) {
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
         }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
-
-        // update longest if needed
+        
         if (currentMatch > longestMatch) {
             longestMatch = currentMatch;
         }
         
-        // move to next buf char
         current_pos++;
     }
-
-    return longestMatch;
+    
+    int finalMax = longestMatch;
+    
+    // Wait for all children and collect results
+    for (int i = 0; i < NUM_PROCESSES - 1; i++) {
+        int status;
+        wait(&status);
+        
+        if (WIFEXITED(status)) {
+            int child_result = WEXITSTATUS(status);
+            if (child_result > finalMax) {
+                finalMax = child_result;
+            }
+        }
+    }
+    
+    return finalMax;
 }
 
 // Find the position with highest Hamming match to 100 digits of pi
