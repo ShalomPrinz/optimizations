@@ -316,6 +316,19 @@ void analyzeAtSparseAddresses(char* buf, int size) {
         digitCount += IS_DIGIT(info) >> 1; // count second bit (digit)
         
         ptr += 1000; // Move to next sparse address
+        if (current--) {
+            c = *ptr;
+            // Count '3' at these sparse positions
+            if (c == '3') count3++;
+            // Use lookup table to count vowels and digits
+            info = char_info[(unsigned char)c];
+            vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
+            digitCount += IS_DIGIT(info) >> 1; // count second bit (digit)
+            
+            ptr += 1000; // Move to next sparse address
+        } else {
+            break;
+        }
     }
     
     printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
