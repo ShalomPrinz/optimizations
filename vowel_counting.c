@@ -46,37 +46,99 @@ int findLongestPiMatch(char* buf, int size) {
         const char* p_buf = current_pos;
         const char* p_pi  = piDigits;
         
-        // 12 chunks x 8 bytes = 96
-        int chunks = 12; 
-        while (chunks--) {
-            // nested unrolling, stops at first mismatch
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}
-            goto update_record;
-        }
-
-        // 100 - 96 = 4 remaining chars
-        if (*p_buf++ == *p_pi++) {
-            currentMatch++;
-            if (*p_buf++ == *p_pi++) {
-                currentMatch++;
-                if (*p_buf++ == *p_pi++) {
-                    currentMatch++;
-                    if (*p_buf++ == *p_pi++) {
-                        currentMatch++; 
-                    }
-                }
-            }
-        }
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
+        }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
 
         // update longest if needed
-    update_record:
         if (currentMatch > longestMatch) {
             longestMatch = currentMatch;
         }
