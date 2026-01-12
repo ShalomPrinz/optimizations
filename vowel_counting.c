@@ -82,7 +82,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -90,7 +89,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -98,7 +96,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -106,7 +103,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -114,7 +110,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -122,7 +117,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -130,7 +124,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -138,7 +131,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -146,7 +138,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -154,7 +145,6 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -162,7 +152,17 @@ int findLongestPiMatch(char* buf, int size) {
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
-                if (*p_buf++ == *p_pi++) { currentMatch++; 
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
+                if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++;
                 if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
                 }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
@@ -207,7 +207,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -215,7 +214,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -223,7 +221,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -231,7 +228,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -239,7 +235,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -247,7 +242,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -255,7 +249,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -263,7 +256,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -271,7 +263,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -279,7 +270,6 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
@@ -287,7 +277,17 @@ parent_only:
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
-        if (*p_buf++ == *p_pi++) { currentMatch++; 
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
+        if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++;
         if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
         }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
@@ -759,7 +759,7 @@ hamming_parent_only:
     }
     
     // Print results
-    printf("=== Best Hamming Match to Pi (100 digits) ===\nBest index: %d\nHamming score: %d/100 matches\n", bestIndex, finalBestScore);    
+    printf("=== Best Hamming Match to Pi (100 digits) ===\nBest index: %d\nHamming score: %d/100 matches\n", bestIndex, finalBestScore);   
     if (bestIndex >= 0) {
         // Print character-by-character comparison
         fwrite("Character-by-character comparison:\nPi:  3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067\nBuf: ",
@@ -811,7 +811,7 @@ void analyzeAtSparseAddresses(char* buf, int size) {
         c3_2 += IS_THREE(i4) + IS_THREE(i5) + IS_THREE(i6) + IS_THREE(i7);
 
         // move to next block
-        buf += 8000; 
+        buf += 8000;
         current -= 8;
     }
 
@@ -831,7 +831,7 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
 }
 
-int countVowels(char* buf, int size) {    
+int countVowels(char* buf, int size) {
     // pi digits check - find longest matching substring
     int longestPiMatch = findLongestPiMatch(buf, size);
     printf("Longest pi digit match found: %d characters\n", longestPiMatch);
