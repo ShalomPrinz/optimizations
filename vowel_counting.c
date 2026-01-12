@@ -38,30 +38,31 @@ static const unsigned char char_info[256] = {
 
 static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
 
-int findLongestPiMatch(char* buf, int size) {
-    int NUM_PROCESSES = 16;
-    int chunk_size = size >> 4;
-    pid_t pids[NUM_PROCESSES - 1];
+int countVowels(char* buf, int size) {
+    // INLINE START - findLongestPiMatch(buf, size);
+    int PI_NUM_PROCESSES = 16;
+    int pi_chunk_size = size >> 4;
+    pid_t pi_pids[PI_NUM_PROCESSES - 1];
     
     // Create child processes
-    for (int proc_id = 0; proc_id < NUM_PROCESSES - 1; proc_id++) {
+    for (int proc_id = 0; proc_id < PI_NUM_PROCESSES - 1; proc_id++) {
         pid_t pid = fork();
         
         if (pid < 0) {
             // Fork failed, kill any children already created
             for (int j = 0; j < proc_id; j++) {
-                kill(pids[j], SIGKILL);
+                kill(pi_pids[j], SIGKILL);
                 wait(NULL);
             }
             // for simplicity, just reduce to single process
-            NUM_PROCESSES = 1;
+            PI_NUM_PROCESSES = 1;
             goto parent_only;
         }
         
         if (pid == 0) {
             // handle chunk proc_id
-            int start = proc_id * chunk_size;
-            int end = start + chunk_size;
+            int start = proc_id * pi_chunk_size;
+            int end = start + pi_chunk_size;
             
             int longestMatch = 0;
             char* current_pos = buf + start;
@@ -179,13 +180,13 @@ int findLongestPiMatch(char* buf, int size) {
         }
         
         // Parent stores child PID
-        pids[proc_id] = pid;
+        pi_pids[proc_id] = pid;
     }
     
 parent_only:
     // Parent process: handle last chunk
-    int parent_id = NUM_PROCESSES - 1;
-    int start = parent_id * chunk_size;
+    int parent_id = PI_NUM_PROCESSES - 1;
+    int start = parent_id * pi_chunk_size;
     int end = size;
     
     int longestMatch = 0;
@@ -299,27 +300,28 @@ parent_only:
         current_pos++;
     }
     
-    int finalMax = longestMatch;
+    int longestPiMatch = longestMatch;
     
     // Wait for all children and collect results
-    for (int i = 0; i < NUM_PROCESSES - 1; i++) {
+    for (int i = 0; i < PI_NUM_PROCESSES - 1; i++) {
         int status;
         wait(&status);
         
         if (WIFEXITED(status)) {
             int child_result = WEXITSTATUS(status);
-            if (child_result > finalMax) {
-                finalMax = child_result;
+            if (child_result > longestPiMatch) {
+                longestPiMatch = child_result;
             }
         }
     }
     
-    return finalMax;
-}
+    printf("Longest pi digit match found: %d characters\n", longestPiMatch);
+    // INLINE END - findLongestPiMatch(buf, size);
+    
+    // INLINE START - findBestHammingMatch(buf, size);
+    // Find the position with highest Hamming match to 100 digits of pi
+    // Hamming match = count of positions where characters match (ignores mismatches in between)
 
-// Find the position with highest Hamming match to 100 digits of pi
-// Hamming match = count of positions where characters match (ignores mismatches in between)
-void findBestHammingMatch(char* buf, int size) {
     // num of parallel forks
     int NUM_PROCESSES = 32;
 
@@ -782,15 +784,7 @@ hamming_parent_only:
         marker_buf[106] = '\n';
         fwrite(marker_buf, 1, 107, stdout);
     }
-}
-
-int countVowels(char* buf, int size) {
-    // pi digits check - find longest matching substring
-    int longestPiMatch = findLongestPiMatch(buf, size);
-    printf("Longest pi digit match found: %d characters\n", longestPiMatch);
-    
-    // Find best Hamming match to pi digits
-    findBestHammingMatch(buf, size);
+    // INLINE END - findBestHammingMatch(buf, size);
     
     // INLINE START - analyzeAtSparseAddresses(buf, size);
     // Counts characters at addresses divisible by 1000 (huge stride = cache miss every access)
