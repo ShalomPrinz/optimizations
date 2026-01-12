@@ -152,7 +152,7 @@ int countVowels(char* buf, int size) {
                 // Fork failed, kill any children already created
                 for (int j = 0; j < proc_id; j++) {
                     kill(pi_pids[j], SIGKILL);
-                    wait(NULL);
+                    waitpid(pi_pids[j], NULL, 0);
                 }
                 // for simplicity, just reduce to single process
                 PI_NUM_PROCESSES = 1;
@@ -405,7 +405,7 @@ int countVowels(char* buf, int size) {
         // Wait for all children and collect results
         for (int i = 0; i < PI_NUM_PROCESSES - 1; i++) {
             int status;
-            wait(&status);
+            waitpid(pi_pids[i], &status, 0);
             
             if (WIFEXITED(status)) {
                 int child_result = WEXITSTATUS(status);
@@ -452,7 +452,7 @@ int countVowels(char* buf, int size) {
             if (pid < 0) {
                 for (int j = 0; j < proc_id; j++) {
                     kill(pids[j], SIGKILL);
-                    wait(NULL);
+                    waitpid(pids[j], NULL, 0);
                 }
                 // for simplicity, just reduce to single process
                 NUM_PROCESSES = 1;
@@ -657,7 +657,7 @@ int countVowels(char* buf, int size) {
         // Parent: wait for all forks and collect results    
         for (int i = 0; i < NUM_PROCESSES; i++) {
             int status;
-            pid_t finished_pid = wait(&status);
+            pid_t finished_pid = waitpid(pids[i], &status, 0);
             
             if (WIFEXITED(status)) {
                 int child_score = WEXITSTATUS(status);
@@ -962,152 +962,165 @@ int countVowels(char* buf, int size) {
         _exit(0);
     }
 
-    // --- PARENT PROCESS: letters, digits, vowels count ---
+    // --- FORK 4: COUNT ---
     int WORKERS = 8;
     int count_pipes[WORKERS][2];
     pid_t count_pids[WORKERS];
-    size_t chunk = size >> 3;
-    int vowelCount = 0;
-
+    // open pipes for all count_pipes in main process (bubbles to forks)
     for (int i = 0; i < WORKERS; i++) {
         pipe(count_pipes[i]);
-        count_pids[i] = fork();
+    }
 
-        if (count_pids[i] < 0) {
-            // Fork failed - kill all previous forks
-            for (int j = 0; j < i; j++) {
-                kill(count_pids[j], SIGKILL);
-                waitpid(count_pids[j], NULL, 0);
+    // fork count_fork_pid to do the most heavy task
+    pid_t count_fork_pid = fork();
+    if (count_fork_pid == 0) {
+        for (int i = 0; i < WORKERS; i++) {
+            count_pids[i] = fork();
+
+            if (count_pids[i] < 0) {
+                // Fork failed - kill all previous forks
+                for (int j = 0; j < i; j++) {
+                    kill(count_pids[j], SIGKILL);
+                    waitpid(count_pids[j], NULL, 0);
+                }
+                // Here I'm not in a created fork - but I'm in count_fork_pid so I should simply _exit
+                _exit(0);
             }
-            // For simplicity, just reduce to single process
-            WORKERS = 1;
-            goto count_parent_only;
-        }
 
-        if (count_pids[i] == 0) {
-            close(count_pipes[i][0]);
+            if (count_pids[i] == 0) {
+                // current fork shouldn't read from its pipe
+                close(count_pipes[i][0]);
 
-            Result r = {0};
-            size_t off = i * chunk;
-            size_t current_chunk_size = (i == WORKERS-1) ? size - off : chunk;
+                Result r = {0};
+                size_t chunk = size >> 3;
+                size_t off = i * chunk;
+                size_t current_chunk_size = (i == WORKERS-1) ? size - off : chunk;
+                
+                int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
+                int local_letters[26] = {0};
+                int local_digits[10] = {0};
+
+                char *count_ptr = buf + off;
+                while (current_chunk_size >= 8) {
+                    // load eight bytes and than separate them by bitwise operations
+                    uint64_t eight = *(uint64_t*)(count_ptr);
+                    unsigned char i0 = char_info[eight & 0xFF];
+                    unsigned char i1 = char_info[(eight >> 8) & 0xFF];
+                    unsigned char i2 = char_info[(eight >> 16) & 0xFF];
+                    unsigned char i3 = char_info[(eight >> 24) & 0xFF];
+                    unsigned char i4 = char_info[(eight >> 32) & 0xFF];
+                    unsigned char i5 = char_info[(eight >> 40) & 0xFF];
+                    unsigned char i6 = char_info[(eight >> 48) & 0xFF];
+                    unsigned char i7 = char_info[(eight >> 56) & 0xFF];
+
+                    // calculate vowel count for all bytes
+                    v0 += IS_VOWEL(i0) + IS_VOWEL(i1);
+                    v1 += IS_VOWEL(i2) + IS_VOWEL(i3);
+                    v2 += IS_VOWEL(i4) + IS_VOWEL(i5);
+                    v3 += IS_VOWEL(i6) + IS_VOWEL(i7);
+
+                    // update letter and digit counts
+                    local_letters[i0 >> 3] += IS_LETTER(i0);
+                    local_letters[i1 >> 3] += IS_LETTER(i1);
+                    local_letters[i2 >> 3] += IS_LETTER(i2);
+                    local_letters[i3 >> 3] += IS_LETTER(i3);
+                    local_letters[i4 >> 3] += IS_LETTER(i4);
+                    local_letters[i5 >> 3] += IS_LETTER(i5);
+                    local_letters[i6 >> 3] += IS_LETTER(i6);
+                    local_letters[i7 >> 3] += IS_LETTER(i7);
+                    local_digits[i0 >> 3] += IS_DIGIT(i0);
+                    local_digits[i1 >> 3] += IS_DIGIT(i1);
+                    local_digits[i2 >> 3] += IS_DIGIT(i2);
+                    local_digits[i3 >> 3] += IS_DIGIT(i3);
+                    local_digits[i4 >> 3] += IS_DIGIT(i4);
+                    local_digits[i5 >> 3] += IS_DIGIT(i5);
+                    local_digits[i6 >> 3] += IS_DIGIT(i6);
+                    local_digits[i7 >> 3] += IS_DIGIT(i7);
+
+                    count_ptr += 8;
+                    current_chunk_size -= 8;
+                }
+
+                int local_vowelCount = v0 + v1 + v2 + v3;
+
+                // Clean up remaining bytes
+                while (current_chunk_size--) {
+                    unsigned char info = char_info[*count_ptr++];
+                    local_letters[info >> 3] += IS_LETTER(info);
+                    local_digits[info >> 3] += IS_DIGIT(info);
+                    local_vowelCount += IS_VOWEL(info);
+                }            
+
+                // unrolled copy to result struct - letters
+                r.letters[0] = local_letters[0];
+                r.letters[1] = local_letters[1];
+                r.letters[2] = local_letters[2];
+                r.letters[3] = local_letters[3];
+                r.letters[4] = local_letters[4];
+                r.letters[5] = local_letters[5];
+                r.letters[6] = local_letters[6];
+                r.letters[7] = local_letters[7];
+                r.letters[8] = local_letters[8];
+                r.letters[9] = local_letters[9];
+                r.letters[10] = local_letters[10];
+                r.letters[11] = local_letters[11];
+                r.letters[12] = local_letters[12];
+                r.letters[13] = local_letters[13];
+                r.letters[14] = local_letters[14];
+                r.letters[15] = local_letters[15];
+                r.letters[16] = local_letters[16];
+                r.letters[17] = local_letters[17];
+                r.letters[18] = local_letters[18];
+                r.letters[19] = local_letters[19];
+                r.letters[20] = local_letters[20];
+                r.letters[21] = local_letters[21];
+                r.letters[22] = local_letters[22];
+                r.letters[23] = local_letters[23];
+                r.letters[24] = local_letters[24];
+                r.letters[25] = local_letters[25];
+
+                // unrolled copy to result struct - vowels
+                r.digits[0] = local_digits[0];
+                r.digits[1] = local_digits[1];
+                r.digits[2] = local_digits[2];
+                r.digits[3] = local_digits[3];
+                r.digits[4] = local_digits[4];
+                r.digits[5] = local_digits[5];
+                r.digits[6] = local_digits[6];
+                r.digits[7] = local_digits[7];
+                r.digits[8] = local_digits[8];
+                r.digits[9] = local_digits[9];
+
+                // write result to pipe
+                r.vowelCount = local_vowelCount;
+                write(count_pipes[i][1], &r, sizeof(r));
+                close(count_pipes[i][1]);
+                _exit(0);
+            }
             
-            int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-            int local_letters[26] = {0};
-            int local_digits[10] = {0};
-
-            char *count_ptr = buf + off;
-            while (current_chunk_size >= 8) {
-                // load eight bytes and than separate them by bitwise operations
-                uint64_t eight = *(uint64_t*)(count_ptr);
-                unsigned char i0 = char_info[eight & 0xFF];
-                unsigned char i1 = char_info[(eight >> 8) & 0xFF];
-                unsigned char i2 = char_info[(eight >> 16) & 0xFF];
-                unsigned char i3 = char_info[(eight >> 24) & 0xFF];
-                unsigned char i4 = char_info[(eight >> 32) & 0xFF];
-                unsigned char i5 = char_info[(eight >> 40) & 0xFF];
-                unsigned char i6 = char_info[(eight >> 48) & 0xFF];
-                unsigned char i7 = char_info[(eight >> 56) & 0xFF];
-
-                // calculate vowel count for all bytes
-                v0 += IS_VOWEL(i0) + IS_VOWEL(i1);
-                v1 += IS_VOWEL(i2) + IS_VOWEL(i3);
-                v2 += IS_VOWEL(i4) + IS_VOWEL(i5);
-                v3 += IS_VOWEL(i6) + IS_VOWEL(i7);
-
-                // update letter and digit counts
-                local_letters[i0 >> 3] += IS_LETTER(i0);
-                local_letters[i1 >> 3] += IS_LETTER(i1);
-                local_letters[i2 >> 3] += IS_LETTER(i2);
-                local_letters[i3 >> 3] += IS_LETTER(i3);
-                local_letters[i4 >> 3] += IS_LETTER(i4);
-                local_letters[i5 >> 3] += IS_LETTER(i5);
-                local_letters[i6 >> 3] += IS_LETTER(i6);
-                local_letters[i7 >> 3] += IS_LETTER(i7);
-                local_digits[i0 >> 3] += IS_DIGIT(i0);
-                local_digits[i1 >> 3] += IS_DIGIT(i1);
-                local_digits[i2 >> 3] += IS_DIGIT(i2);
-                local_digits[i3 >> 3] += IS_DIGIT(i3);
-                local_digits[i4 >> 3] += IS_DIGIT(i4);
-                local_digits[i5 >> 3] += IS_DIGIT(i5);
-                local_digits[i6 >> 3] += IS_DIGIT(i6);
-                local_digits[i7 >> 3] += IS_DIGIT(i7);
-
-                count_ptr += 8;
-                current_chunk_size -= 8;
-            }
-
-            int local_vowelCount = v0 + v1 + v2 + v3;
-
-            // Clean up remaining bytes
-            while (current_chunk_size--) {
-                unsigned char info = char_info[*count_ptr++];
-                local_letters[info >> 3] += IS_LETTER(info);
-                local_digits[info >> 3] += IS_DIGIT(info);
-                local_vowelCount += IS_VOWEL(info);
-            }            
-
-            // unrolled copy to result struct - letters
-            r.letters[0] = local_letters[0];
-            r.letters[1] = local_letters[1];
-            r.letters[2] = local_letters[2];
-            r.letters[3] = local_letters[3];
-            r.letters[4] = local_letters[4];
-            r.letters[5] = local_letters[5];
-            r.letters[6] = local_letters[6];
-            r.letters[7] = local_letters[7];
-            r.letters[8] = local_letters[8];
-            r.letters[9] = local_letters[9];
-            r.letters[10] = local_letters[10];
-            r.letters[11] = local_letters[11];
-            r.letters[12] = local_letters[12];
-            r.letters[13] = local_letters[13];
-            r.letters[14] = local_letters[14];
-            r.letters[15] = local_letters[15];
-            r.letters[16] = local_letters[16];
-            r.letters[17] = local_letters[17];
-            r.letters[18] = local_letters[18];
-            r.letters[19] = local_letters[19];
-            r.letters[20] = local_letters[20];
-            r.letters[21] = local_letters[21];
-            r.letters[22] = local_letters[22];
-            r.letters[23] = local_letters[23];
-            r.letters[24] = local_letters[24];
-            r.letters[25] = local_letters[25];
-
-            // unrolled copy to result struct - vowels
-            r.digits[0] = local_digits[0];
-            r.digits[1] = local_digits[1];
-            r.digits[2] = local_digits[2];
-            r.digits[3] = local_digits[3];
-            r.digits[4] = local_digits[4];
-            r.digits[5] = local_digits[5];
-            r.digits[6] = local_digits[6];
-            r.digits[7] = local_digits[7];
-            r.digits[8] = local_digits[8];
-            r.digits[9] = local_digits[9];
-
-            // write result to pipe
-            r.vowelCount = local_vowelCount;
-            write(count_pipes[i][1], &r, sizeof(r));
-            _exit(0);
+            // count_fork_pid shouldn't write to it
+            close(count_pipes[i][1]);
         }
-        close(count_pipes[i][1]);
+        // exit count_fork_pid after all work is done
+        _exit(0);
+    } else if (count_fork_pid < 0) {
+        // I'm in main process and count_fork failed to start: set mode to parent only
+        WORKERS = 1;
     }
 
-    // Run on main process only - aggregate results from workers
-    for (int i = 0; i < WORKERS; i++) {
-        Result r;
-        read(count_pipes[i][0], &r, sizeof(r));
-        close(count_pipes[i][0]);
-
-        vowelCount += r.vowelCount;
-        for (int j = 0; j < 26; j++) letterCounts[j] += r.letters[j];
-        for (int j = 0; j < 10; j++) digitCounts[j] += r.digits[j];
-        waitpid(count_pids[i], NULL, 0);
-    }
-
-count_parent_only:
-    if (WORKERS == 1) {
+    // Run on main process only - aggregate results from count_fork_pid workers
+    int vowelCount = 0;
+    if (WORKERS > 1) {
+        for (int i = 0; i < WORKERS; i++) {
+            Result r;
+            read(count_pipes[i][0], &r, sizeof(r));
+            close(count_pipes[i][0]);
+    
+            vowelCount += r.vowelCount;
+            for (int j = 0; j < 26; j++) letterCounts[j] += r.letters[j];
+            for (int j = 0; j < 10; j++) digitCounts[j] += r.digits[j];
+        }
+    } else {
         vowelCount = calculateCountsSingleProcess(buf, size);
     }
 
