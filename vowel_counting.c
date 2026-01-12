@@ -782,9 +782,7 @@ hamming_parent_only:
 
 // Counts characters at addresses divisible by 1000 (huge stride = cache miss every access)
 void analyzeAtSparseAddresses(char* buf, int size) {
-    int count3 = 0;        // How many times '3' appears at index % 1000 == 0
-    int vowelCount = 0;    // Vowels at those positions
-    int digitCount = 0;    // Digits at those positions
+    int d0 = 0, d1 = 0, v0 = 0, v1 = 0, c3_1 = 0, c3_2 = 0;
     
     // calc steps once instead of checking ptr < end each iteration
     int steps = (size + 999) / 1000;
@@ -801,17 +799,21 @@ void analyzeAtSparseAddresses(char* buf, int size) {
         unsigned char i7 = char_info[buf[7000]];
 
         // update counts
-        digitCount += IS_DIGIT(i0) + IS_DIGIT(i1) + IS_DIGIT(i2) + IS_DIGIT(i3) +
-                      IS_DIGIT(i4) + IS_DIGIT(i5) + IS_DIGIT(i6) + IS_DIGIT(i7);
-        vowelCount += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3) +
-                      IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
-        count3 += IS_THREE(i0) + IS_THREE(i1) + IS_THREE(i2) + IS_THREE(i3) +
-                  IS_THREE(i4) + IS_THREE(i5) + IS_THREE(i6) + IS_THREE(i7);
+        d0 += IS_DIGIT(i0) + IS_DIGIT(i1) + IS_DIGIT(i2) + IS_DIGIT(i3);
+        d1 += IS_DIGIT(i4) + IS_DIGIT(i5) + IS_DIGIT(i6) + IS_DIGIT(i7);
+        v0 += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3);
+        v1 += IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
+        c3_1 += IS_THREE(i0) + IS_THREE(i1) + IS_THREE(i2) + IS_THREE(i3);
+        c3_2 += IS_THREE(i4) + IS_THREE(i5) + IS_THREE(i6) + IS_THREE(i7);
 
         // move to next block
         buf += 8000; 
         current -= 8;
     }
+
+    int digitCount = d0 + d1;    // Digits at those positions
+    int vowelCount = v0 + v1;    // Vowels at those positions
+    int count3 = c3_1 + c3_2;    // How many times '3' appears at index % 1000 == 0
 
     // Handle remainder
     while (current--) {
@@ -825,9 +827,7 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
 }
 
-int countVowels(char* buf, int size) {
-    int vowelCount = 0;
-    
+int countVowels(char* buf, int size) {    
     // pi digits check - find longest matching substring
     int longestPiMatch = findLongestPiMatch(buf, size);
     printf("Longest pi digit match found: %d characters\n", longestPiMatch);
@@ -837,6 +837,10 @@ int countVowels(char* buf, int size) {
     
     // analysis - counts '3' at sparse addresses
     analyzeAtSparseAddresses(buf, size);
+
+    int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
+    int local_letters[26] = {0};
+    int local_digits[10] = {0};
 
     while (size >= 8) {
         // load eight bytes and than separate them by bitwise operations
@@ -851,30 +855,63 @@ int countVowels(char* buf, int size) {
         unsigned char i7 = char_info[(eight >> 56) & 0xFF];
 
         // calculate vowel count for all bytes
-        vowelCount += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3) +
-                      IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
+        v0 += IS_VOWEL(i0) + IS_VOWEL(i1);
+        v1 += IS_VOWEL(i2) + IS_VOWEL(i3);
+        v2 += IS_VOWEL(i4) + IS_VOWEL(i5);
+        v3 += IS_VOWEL(i6) + IS_VOWEL(i7);
 
         // update letter and digit counts
-        letterCounts[i0 >> 3] += (i0 & 1); digitCounts[i0 >> 3] += (i0 & 2) >> 1;
-        letterCounts[i1 >> 3] += (i1 & 1); digitCounts[i1 >> 3] += (i1 & 2) >> 1;
-        letterCounts[i2 >> 3] += (i2 & 1); digitCounts[i2 >> 3] += (i2 & 2) >> 1;
-        letterCounts[i3 >> 3] += (i3 & 1); digitCounts[i3 >> 3] += (i3 & 2) >> 1;
-        letterCounts[i4 >> 3] += (i4 & 1); digitCounts[i4 >> 3] += (i4 & 2) >> 1;
-        letterCounts[i5 >> 3] += (i5 & 1); digitCounts[i5 >> 3] += (i5 & 2) >> 1;
-        letterCounts[i6 >> 3] += (i6 & 1); digitCounts[i6 >> 3] += (i6 & 2) >> 1;
-        letterCounts[i7 >> 3] += (i7 & 1); digitCounts[i7 >> 3] += (i7 & 2) >> 1;
+        local_letters[i0 >> 3] += IS_LETTER(i0);
+        local_letters[i1 >> 3] += IS_LETTER(i1);
+        local_letters[i2 >> 3] += IS_LETTER(i2);
+        local_letters[i3 >> 3] += IS_LETTER(i3);
+        local_letters[i4 >> 3] += IS_LETTER(i4);
+        local_letters[i5 >> 3] += IS_LETTER(i5);
+        local_letters[i6 >> 3] += IS_LETTER(i6);
+        local_letters[i7 >> 3] += IS_LETTER(i7);
+        local_digits[i0 >> 3] += IS_DIGIT(i0);
+        local_digits[i1 >> 3] += IS_DIGIT(i1);
+        local_digits[i2 >> 3] += IS_DIGIT(i2);
+        local_digits[i3 >> 3] += IS_DIGIT(i3);
+        local_digits[i4 >> 3] += IS_DIGIT(i4);
+        local_digits[i5 >> 3] += IS_DIGIT(i5);
+        local_digits[i6 >> 3] += IS_DIGIT(i6);
+        local_digits[i7 >> 3] += IS_DIGIT(i7);
 
         buf += 8;
         size -= 8;
     }
 
+    int vowelCount = v0 + v1 + v2 + v3;
+
     // Clean up remaining bytes
     while (size--) {
         unsigned char info = char_info[*buf++];
-        letterCounts[info >> 3] += IS_LETTER(info);
-        digitCounts[info >> 3] += IS_DIGIT(info);
+        local_letters[info >> 3] += IS_LETTER(info);
+        local_digits[info >> 3] += IS_DIGIT(info);
         vowelCount += IS_VOWEL(info);
     }
+
+    // Unrolled copy to global arrays
+    letterCounts[0] = local_letters[0]; letterCounts[1] = local_letters[1];
+    letterCounts[2] = local_letters[2]; letterCounts[3] = local_letters[3];
+    letterCounts[4] = local_letters[4]; letterCounts[5] = local_letters[5];
+    letterCounts[6] = local_letters[6]; letterCounts[7] = local_letters[7];
+    letterCounts[8] = local_letters[8]; letterCounts[9] = local_letters[9];
+    letterCounts[10] = local_letters[10]; letterCounts[11] = local_letters[11];
+    letterCounts[12] = local_letters[12]; letterCounts[13] = local_letters[13];
+    letterCounts[14] = local_letters[14]; letterCounts[15] = local_letters[15];
+    letterCounts[16] = local_letters[16]; letterCounts[17] = local_letters[17];
+    letterCounts[18] = local_letters[18]; letterCounts[19] = local_letters[19];
+    letterCounts[20] = local_letters[20]; letterCounts[21] = local_letters[21];
+    letterCounts[22] = local_letters[22]; letterCounts[23] = local_letters[23];
+    letterCounts[24] = local_letters[24]; letterCounts[25] = local_letters[25];
+
+    digitCounts[0] = local_digits[0]; digitCounts[1] = local_digits[1];
+    digitCounts[2] = local_digits[2]; digitCounts[3] = local_digits[3];
+    digitCounts[4] = local_digits[4]; digitCounts[5] = local_digits[5];
+    digitCounts[6] = local_digits[6]; digitCounts[7] = local_digits[7];
+    digitCounts[8] = local_digits[8]; digitCounts[9] = local_digits[9];
     return vowelCount;
 }
 
