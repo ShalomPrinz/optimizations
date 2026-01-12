@@ -31,9 +31,10 @@ static const unsigned char char_info[256] = {
     ['u']=0xa5, ['v']=0xa9, ['w']=0xb1, ['x']=0xb9, ['y']=0xc1, ['z']=0xc9
 };
 
-#define IS_LETTER(info)   ((info) & 0x01)
-#define IS_DIGIT(info)    ((info) & 0x02)
-#define IS_VOWEL(info)    ((info) & 0x04)
+#define IS_LETTER(info)   ((info) & 1)
+#define IS_DIGIT(info)    ((info >> 1) & 1)
+#define IS_VOWEL(info)    ((info >> 2) & 1)
+#define IS_THREE(info)    ((info) == 0x1a)
 
 static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
 
@@ -788,29 +789,37 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     // calc steps once instead of checking ptr < end each iteration
     int steps = (size + 999) / 1000;
     int current = steps;
+    while (current >= 8) {
+        // load eight sparse addresses
+        unsigned char i0 = char_info[buf[0]];
+        unsigned char i1 = char_info[buf[1000]];
+        unsigned char i2 = char_info[buf[2000]];
+        unsigned char i3 = char_info[buf[3000]];
+        unsigned char i4 = char_info[buf[4000]];
+        unsigned char i5 = char_info[buf[5000]];
+        unsigned char i6 = char_info[buf[6000]];
+        unsigned char i7 = char_info[buf[7000]];
+
+        // update counts
+        digitCount += IS_DIGIT(i0) + IS_DIGIT(i1) + IS_DIGIT(i2) + IS_DIGIT(i3) +
+                      IS_DIGIT(i4) + IS_DIGIT(i5) + IS_DIGIT(i6) + IS_DIGIT(i7);
+        vowelCount += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3) +
+                      IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
+        count3 += IS_THREE(i0) + IS_THREE(i1) + IS_THREE(i2) + IS_THREE(i3) +
+                  IS_THREE(i4) + IS_THREE(i5) + IS_THREE(i6) + IS_THREE(i7);
+
+        // move to next block
+        buf += 8000; 
+        current -= 8;
+    }
+
+    // Handle remainder
     while (current--) {
-        // Use lookup table to count vowels and digits
         unsigned char info = char_info[*buf];
-        if (IS_DIGIT(info)) {
-            digitCount++; // count second bit (digit)
-            // Count '3' at these sparse positions
-            if (info == 0x1a) count3++;
-        }
-        else if (IS_VOWEL(info)) vowelCount++; // count third bit (vowel)
-        
-        // unroll next iteration for pipeline efficiency
-        if (current--) {
-            buf += 1000; // Move to next sparse address
-            info = char_info[*buf];
-            if (IS_DIGIT(info)) {
-                digitCount++;
-                if (info == 0x1a) count3++;
-            }
-            else if (IS_VOWEL(info)) vowelCount++;
-        } else {
-            break;
-        }
-        buf += 1000; // Move to next sparse address
+        digitCount += IS_DIGIT(info);
+        vowelCount += IS_VOWEL(info);
+        count3 += IS_THREE(info);
+        buf += 1000;
     }
     
     printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
@@ -842,8 +851,8 @@ int countVowels(char* buf, int size) {
         unsigned char i7 = char_info[(eight >> 56) & 0xFF];
 
         // calculate vowel count for all bytes
-        vowelCount += (IS_VOWEL(i0) >> 2) + (IS_VOWEL(i1) >> 2) + (IS_VOWEL(i2) >> 2) + (IS_VOWEL(i3) >> 2) +
-                      (IS_VOWEL(i4) >> 2) + (IS_VOWEL(i5) >> 2) + (IS_VOWEL(i6) >> 2) + (IS_VOWEL(i7) >> 2);
+        vowelCount += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3) +
+                      IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
 
         // update letter and digit counts
         letterCounts[i0 >> 3] += (i0 & 1); digitCounts[i0 >> 3] += (i0 & 2) >> 1;
@@ -863,8 +872,8 @@ int countVowels(char* buf, int size) {
     while (size--) {
         unsigned char info = char_info[*buf++];
         letterCounts[info >> 3] += IS_LETTER(info);
-        digitCounts[info >> 3] += IS_DIGIT(info) >> 1;
-        vowelCount += IS_VOWEL(info) >> 2;
+        digitCounts[info >> 3] += IS_DIGIT(info);
+        vowelCount += IS_VOWEL(info);
     }
     return vowelCount;
 }
