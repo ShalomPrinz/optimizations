@@ -762,21 +762,25 @@ hamming_parent_only:
     printf("=== Best Hamming Match to Pi (100 digits) ===\nBest index: %d\nHamming score: %d/100 matches\n", bestIndex, finalBestScore);    
     if (bestIndex >= 0) {
         // Print character-by-character comparison
-        fwrite("Character-by-character comparison:\nPi:  ", 1, 41, stdout);
-        fwrite(piDigits, 1, 100, stdout);
+        fwrite("Character-by-character comparison:\nPi:  3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067\nBuf: ",
+            1, 147, stdout);
         
-        fwrite("\nBuf: ", 1, 6, stdout);
         char *bestbufptr = buf + bestIndex;
         fwrite(bestbufptr, 1, 100, stdout);
-        fwrite("\n     ", 1, 6, stdout);
         
         static const char match_map[2] = {' ', '^'};
-        static char marker_buf[101] = {0};
+        char marker_buf[107] = {0};
+        marker_buf[0] = '\n';
+        marker_buf[1] = ' ';
+        marker_buf[2] = ' ';
+        marker_buf[3] = ' ';
+        marker_buf[4] = ' ';
+        marker_buf[5] = ' ';
         for (int j = 0; j < 100; j++) {
-            marker_buf[j] = match_map[bestbufptr[j] == piDigits[j]];
+            marker_buf[j + 6] = match_map[bestbufptr[j] == piDigits[j]];
         }
-        marker_buf[100] = '\n';
-        fwrite(marker_buf, 1, 101, stdout);
+        marker_buf[106] = '\n';
+        fwrite(marker_buf, 1, 107, stdout);
     }
 }
 
