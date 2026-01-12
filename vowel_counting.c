@@ -38,8 +38,8 @@ static const unsigned char char_info[256] = {
 static const char piDigits[] = "3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067";
 
 int findLongestPiMatch(char* buf, int size) {
-    int NUM_PROCESSES = 20;
-    int chunk_size = size / NUM_PROCESSES;
+    int NUM_PROCESSES = 16;
+    int chunk_size = size >> 4;
     pid_t pids[NUM_PROCESSES - 1];
     
     // Create child processes
@@ -324,7 +324,7 @@ void findBestHammingMatch(char* buf, int size) {
 
     // init
     int searchSpace = size - 100;
-    int chunk_size = searchSpace / NUM_PROCESSES;
+    int chunk_size = searchSpace >> 5;
     pid_t pids[NUM_PROCESSES];
     int finalBestScore = 0;
     int winningForkId = -1;
@@ -789,30 +789,29 @@ void analyzeAtSparseAddresses(char* buf, int size) {
     // calc steps once instead of checking ptr < end each iteration
     int steps = (size + 999) / 1000;
     int current = steps;
-    char *ptr = buf;
     while (current--) {
-        char c = *ptr;
-        // Count '3' at these sparse positions
-        if (c == '3') count3++;
         // Use lookup table to count vowels and digits
-        unsigned char info = char_info[(unsigned char)c];
-        vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
-        digitCount += IS_DIGIT(info) >> 1; // count second bit (digit)
-        
-        ptr += 1000; // Move to next sparse address
-        if (current--) {
-            c = *ptr;
+        unsigned char info = char_info[*buf];
+        if (IS_DIGIT(info)) {
+            digitCount++; // count second bit (digit)
             // Count '3' at these sparse positions
-            if (c == '3') count3++;
-            // Use lookup table to count vowels and digits
-            info = char_info[(unsigned char)c];
-            vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
-            digitCount += IS_DIGIT(info) >> 1; // count second bit (digit)
-            
-            ptr += 1000; // Move to next sparse address
+            if (info == 0x1a) count3++;
+        }
+        else if (IS_VOWEL(info)) vowelCount++; // count third bit (vowel)
+        
+        // unroll next iteration for pipeline efficiency
+        if (current--) {
+            buf += 1000; // Move to next sparse address
+            info = char_info[*buf];
+            if (IS_DIGIT(info)) {
+                digitCount++;
+                if (info == 0x1a) count3++;
+            }
+            else if (IS_VOWEL(info)) vowelCount++;
         } else {
             break;
         }
+        buf += 1000; // Move to next sparse address
     }
     
     printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
@@ -831,14 +830,13 @@ int countVowels(char* buf, int size) {
     // analysis - counts '3' at sparse addresses
     analyzeAtSparseAddresses(buf, size);
 
-    char *ptr = buf;
     while (size--) {
         // Count character
-        unsigned char info = char_info[(unsigned char)*ptr++];
+        unsigned char info = char_info[*buf++];
         if (IS_LETTER(info)) {
             // Top 5 bits contain (0..25)
             letterCounts[info >> 3]++;
-            vowelCount += IS_VOWEL(info) >> 2; // count third bit (vowel)
+            if (IS_VOWEL(info)) vowelCount++; // count third bit (vowel)
         } 
         else if (IS_DIGIT(info)) {
             // Top 5 bits contain (0..9)
