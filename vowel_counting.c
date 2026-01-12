@@ -784,53 +784,6 @@ hamming_parent_only:
     }
 }
 
-// Counts characters at addresses divisible by 1000 (huge stride = cache miss every access)
-void analyzeAtSparseAddresses(char* buf, int size) {
-    int d0 = 0, d1 = 0, v0 = 0, v1 = 0, c3_1 = 0, c3_2 = 0;
-    
-    // calc steps once instead of checking ptr < end each iteration
-    int steps = (size + 999) / 1000;
-    int current = steps;
-    while (current >= 8) {
-        // load eight sparse addresses
-        unsigned char i0 = char_info[buf[0]];
-        unsigned char i1 = char_info[buf[1000]];
-        unsigned char i2 = char_info[buf[2000]];
-        unsigned char i3 = char_info[buf[3000]];
-        unsigned char i4 = char_info[buf[4000]];
-        unsigned char i5 = char_info[buf[5000]];
-        unsigned char i6 = char_info[buf[6000]];
-        unsigned char i7 = char_info[buf[7000]];
-
-        // update counts
-        d0 += IS_DIGIT(i0) + IS_DIGIT(i1) + IS_DIGIT(i2) + IS_DIGIT(i3);
-        d1 += IS_DIGIT(i4) + IS_DIGIT(i5) + IS_DIGIT(i6) + IS_DIGIT(i7);
-        v0 += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3);
-        v1 += IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
-        c3_1 += IS_THREE(i0) + IS_THREE(i1) + IS_THREE(i2) + IS_THREE(i3);
-        c3_2 += IS_THREE(i4) + IS_THREE(i5) + IS_THREE(i6) + IS_THREE(i7);
-
-        // move to next block
-        buf += 8000;
-        current -= 8;
-    }
-
-    int digitCount = d0 + d1;    // Digits at those positions
-    int vowelCount = v0 + v1;    // Vowels at those positions
-    int count3 = c3_1 + c3_2;    // How many times '3' appears at index % 1000 == 0
-
-    // Handle remainder
-    while (current--) {
-        unsigned char info = char_info[*buf];
-        digitCount += IS_DIGIT(info);
-        vowelCount += IS_VOWEL(info);
-        count3 += IS_THREE(info);
-        buf += 1000;
-    }
-    
-    printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, vowelCount, digitCount);
-}
-
 int countVowels(char* buf, int size) {
     // pi digits check - find longest matching substring
     int longestPiMatch = findLongestPiMatch(buf, size);
@@ -839,8 +792,53 @@ int countVowels(char* buf, int size) {
     // Find best Hamming match to pi digits
     findBestHammingMatch(buf, size);
     
-    // analysis - counts '3' at sparse addresses
-    analyzeAtSparseAddresses(buf, size);
+    // INLINE START - analyzeAtSparseAddresses(buf, size);
+    // Counts characters at addresses divisible by 1000 (huge stride = cache miss every access)
+    int d0 = 0, d1 = 0, s_v0 = 0, s_v1 = 0, c3_1 = 0, c3_2 = 0;
+    
+    // calc steps once instead of checking ptr < end each iteration
+    int steps = (size + 999) / 1000;
+    int current = steps;
+    char *ptr = buf;
+    while (current >= 8) {
+        // load eight sparse addresses
+        unsigned char i0 = char_info[ptr[0]];
+        unsigned char i1 = char_info[ptr[1000]];
+        unsigned char i2 = char_info[ptr[2000]];
+        unsigned char i3 = char_info[ptr[3000]];
+        unsigned char i4 = char_info[ptr[4000]];
+        unsigned char i5 = char_info[ptr[5000]];
+        unsigned char i6 = char_info[ptr[6000]];
+        unsigned char i7 = char_info[ptr[7000]];
+
+        // update counts
+        d0 += IS_DIGIT(i0) + IS_DIGIT(i1) + IS_DIGIT(i2) + IS_DIGIT(i3);
+        d1 += IS_DIGIT(i4) + IS_DIGIT(i5) + IS_DIGIT(i6) + IS_DIGIT(i7);
+        s_v0 += IS_VOWEL(i0) + IS_VOWEL(i1) + IS_VOWEL(i2) + IS_VOWEL(i3);
+        s_v1 += IS_VOWEL(i4) + IS_VOWEL(i5) + IS_VOWEL(i6) + IS_VOWEL(i7);
+        c3_1 += IS_THREE(i0) + IS_THREE(i1) + IS_THREE(i2) + IS_THREE(i3);
+        c3_2 += IS_THREE(i4) + IS_THREE(i5) + IS_THREE(i6) + IS_THREE(i7);
+
+        // move to next block
+        ptr += 8000;
+        current -= 8;
+    }
+
+    int digitCount = d0 + d1;    // Digits at those positions
+    int sparseVowelCount = s_v0 + s_v1;    // Vowels at those positions
+    int count3 = c3_1 + c3_2;    // How many times '3' appears at index % 1000 == 0
+
+    // Handle remainder
+    while (current--) {
+        unsigned char info = char_info[*ptr];
+        digitCount += IS_DIGIT(info);
+        sparseVowelCount += IS_VOWEL(info);
+        count3 += IS_THREE(info);
+        ptr += 1000;
+    }
+    
+    printf("Positions checked: %d\nCount of '3' at addresses divisible by 1000: %d\nVowels at sparse addresses: %d\nDigits at sparse addresses: %d\n", steps, count3, sparseVowelCount, digitCount);
+    // INLINE END - analyzeAtSparseAddresses(buf, size);
 
     int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
     int local_letters[26] = {0};
