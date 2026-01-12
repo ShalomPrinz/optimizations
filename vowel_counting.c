@@ -829,18 +829,42 @@ int countVowels(char* buf, int size) {
     // analysis - counts '3' at sparse addresses
     analyzeAtSparseAddresses(buf, size);
 
+    while (size >= 8) {
+        // load eight bytes and than separate them by bitwise operations
+        uint64_t eight = *(uint64_t*)(buf);
+        unsigned char i0 = char_info[eight & 0xFF];
+        unsigned char i1 = char_info[(eight >> 8) & 0xFF];
+        unsigned char i2 = char_info[(eight >> 16) & 0xFF];
+        unsigned char i3 = char_info[(eight >> 24) & 0xFF];
+        unsigned char i4 = char_info[(eight >> 32) & 0xFF];
+        unsigned char i5 = char_info[(eight >> 40) & 0xFF];
+        unsigned char i6 = char_info[(eight >> 48) & 0xFF];
+        unsigned char i7 = char_info[(eight >> 56) & 0xFF];
+
+        // calculate vowel count for all bytes
+        vowelCount += (IS_VOWEL(i0) >> 2) + (IS_VOWEL(i1) >> 2) + (IS_VOWEL(i2) >> 2) + (IS_VOWEL(i3) >> 2) +
+                      (IS_VOWEL(i4) >> 2) + (IS_VOWEL(i5) >> 2) + (IS_VOWEL(i6) >> 2) + (IS_VOWEL(i7) >> 2);
+
+        // update letter and digit counts
+        letterCounts[i0 >> 3] += (i0 & 1); digitCounts[i0 >> 3] += (i0 & 2) >> 1;
+        letterCounts[i1 >> 3] += (i1 & 1); digitCounts[i1 >> 3] += (i1 & 2) >> 1;
+        letterCounts[i2 >> 3] += (i2 & 1); digitCounts[i2 >> 3] += (i2 & 2) >> 1;
+        letterCounts[i3 >> 3] += (i3 & 1); digitCounts[i3 >> 3] += (i3 & 2) >> 1;
+        letterCounts[i4 >> 3] += (i4 & 1); digitCounts[i4 >> 3] += (i4 & 2) >> 1;
+        letterCounts[i5 >> 3] += (i5 & 1); digitCounts[i5 >> 3] += (i5 & 2) >> 1;
+        letterCounts[i6 >> 3] += (i6 & 1); digitCounts[i6 >> 3] += (i6 & 2) >> 1;
+        letterCounts[i7 >> 3] += (i7 & 1); digitCounts[i7 >> 3] += (i7 & 2) >> 1;
+
+        buf += 8;
+        size -= 8;
+    }
+
+    // Clean up remaining bytes
     while (size--) {
-        // Count character
         unsigned char info = char_info[*buf++];
-        if (IS_LETTER(info)) {
-            // Top 5 bits contain (0..25)
-            letterCounts[info >> 3]++;
-            if (IS_VOWEL(info)) vowelCount++; // count third bit (vowel)
-        } 
-        else if (IS_DIGIT(info)) {
-            // Top 5 bits contain (0..9)
-            digitCounts[info >> 3]++;
-        }
+        letterCounts[info >> 3] += IS_LETTER(info);
+        digitCounts[info >> 3] += IS_DIGIT(info) >> 1;
+        vowelCount += IS_VOWEL(info) >> 2;
     }
     return vowelCount;
 }
