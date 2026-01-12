@@ -44,6 +44,85 @@ typedef struct {
     int digits[10];
 } Result;
 
+// Single process vowel, letters, digits counting function
+// NOTE - shouldn't be called, this is just an edge case when we fails to fork
+int calculateCountsSingleProcess(char* buf, int size) {
+    int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
+    int local_letters[26] = {0};
+    int local_digits[10] = {0};
+
+    while (size >= 8) {
+        // load eight bytes and than separate them by bitwise operations
+        uint64_t eight = *(uint64_t*)(buf);
+        unsigned char i0 = char_info[eight & 0xFF];
+        unsigned char i1 = char_info[(eight >> 8) & 0xFF];
+        unsigned char i2 = char_info[(eight >> 16) & 0xFF];
+        unsigned char i3 = char_info[(eight >> 24) & 0xFF];
+        unsigned char i4 = char_info[(eight >> 32) & 0xFF];
+        unsigned char i5 = char_info[(eight >> 40) & 0xFF];
+        unsigned char i6 = char_info[(eight >> 48) & 0xFF];
+        unsigned char i7 = char_info[(eight >> 56) & 0xFF];
+
+        // calculate vowel count for all bytes
+        v0 += IS_VOWEL(i0) + IS_VOWEL(i1);
+        v1 += IS_VOWEL(i2) + IS_VOWEL(i3);
+        v2 += IS_VOWEL(i4) + IS_VOWEL(i5);
+        v3 += IS_VOWEL(i6) + IS_VOWEL(i7);
+
+        // update letter and digit counts
+        local_letters[i0 >> 3] += IS_LETTER(i0);
+        local_letters[i1 >> 3] += IS_LETTER(i1);
+        local_letters[i2 >> 3] += IS_LETTER(i2);
+        local_letters[i3 >> 3] += IS_LETTER(i3);
+        local_letters[i4 >> 3] += IS_LETTER(i4);
+        local_letters[i5 >> 3] += IS_LETTER(i5);
+        local_letters[i6 >> 3] += IS_LETTER(i6);
+        local_letters[i7 >> 3] += IS_LETTER(i7);
+        local_digits[i0 >> 3] += IS_DIGIT(i0);
+        local_digits[i1 >> 3] += IS_DIGIT(i1);
+        local_digits[i2 >> 3] += IS_DIGIT(i2);
+        local_digits[i3 >> 3] += IS_DIGIT(i3);
+        local_digits[i4 >> 3] += IS_DIGIT(i4);
+        local_digits[i5 >> 3] += IS_DIGIT(i5);
+        local_digits[i6 >> 3] += IS_DIGIT(i6);
+        local_digits[i7 >> 3] += IS_DIGIT(i7);
+
+        buf += 8;
+        size -= 8;
+    }
+
+    int vowelCount = v0 + v1 + v2 + v3;
+
+    // Clean up remaining bytes
+    while (size--) {
+        unsigned char info = char_info[*buf++];
+        local_letters[info >> 3] += IS_LETTER(info);
+        local_digits[info >> 3] += IS_DIGIT(info);
+        vowelCount += IS_VOWEL(info);
+    }
+
+    // Unrolled copy to global arrays - letters and digits;
+    letterCounts[0] = local_letters[0]; letterCounts[1] = local_letters[1];
+    letterCounts[2] = local_letters[2]; letterCounts[3] = local_letters[3];
+    letterCounts[4] = local_letters[4]; letterCounts[5] = local_letters[5];
+    letterCounts[6] = local_letters[6]; letterCounts[7] = local_letters[7];
+    letterCounts[8] = local_letters[8]; letterCounts[9] = local_letters[9];
+    letterCounts[10] = local_letters[10]; letterCounts[11] = local_letters[11];
+    letterCounts[12] = local_letters[12]; letterCounts[13] = local_letters[13];
+    letterCounts[14] = local_letters[14]; letterCounts[15] = local_letters[15];
+    letterCounts[16] = local_letters[16]; letterCounts[17] = local_letters[17];
+    letterCounts[18] = local_letters[18]; letterCounts[19] = local_letters[19];
+    letterCounts[20] = local_letters[20]; letterCounts[21] = local_letters[21];
+    letterCounts[22] = local_letters[22]; letterCounts[23] = local_letters[23];
+    letterCounts[24] = local_letters[24]; letterCounts[25] = local_letters[25];
+    digitCounts[0] = local_digits[0]; digitCounts[1] = local_digits[1];
+    digitCounts[2] = local_digits[2]; digitCounts[3] = local_digits[3];
+    digitCounts[4] = local_digits[4]; digitCounts[5] = local_digits[5];
+    digitCounts[6] = local_digits[6]; digitCounts[7] = local_digits[7];
+    digitCounts[8] = local_digits[8]; digitCounts[9] = local_digits[9];
+    return vowelCount;
+}
+
 int countVowels(char* buf, int size) {
     /*
         Short strategy explanation:
@@ -908,7 +987,6 @@ int countVowels(char* buf, int size) {
         if (count_pids[i] == 0) {
             close(count_pipes[i][0]);
 
-        count_parent_only:
             Result r = {0};
             size_t off = i * chunk;
             size_t current_chunk_size = (i == WORKERS-1) ? size - off : chunk;
@@ -916,11 +994,6 @@ int countVowels(char* buf, int size) {
             int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
             int local_letters[26] = {0};
             int local_digits[10] = {0};
-
-            if (WORKERS == 1) {
-                off = 0;
-                current_chunk_size = size;
-            }
 
             char *count_ptr = buf + off;
             while (current_chunk_size >= 8) {
@@ -973,53 +1046,69 @@ int countVowels(char* buf, int size) {
                 local_vowelCount += IS_VOWEL(info);
             }            
 
-            if (WORKERS > 1) {
-                // unrolled copy to result struct
-                r.vowelCount = local_vowelCount;
-                r.letters[0] = local_letters[0]; r.letters[1] = local_letters[1];
-                r.letters[2] = local_letters[2]; r.letters[3] = local_letters[3];
-                r.letters[4] = local_letters[4]; r.letters[5] = local_letters[5];
-                r.letters[6] = local_letters[6]; r.letters[7] = local_letters[7];
-                r.letters[8] = local_letters[8]; r.letters[9] = local_letters[9];
-                r.letters[10] = local_letters[10]; r.letters[11] = local_letters[11];
-                r.letters[12] = local_letters[12]; r.letters[13] = local_letters[13];
-                r.letters[14] = local_letters[14]; r.letters[15] = local_letters[15];
-                r.letters[16] = local_letters[16]; r.letters[17] = local_letters[17];
-                r.letters[18] = local_letters[18]; r.letters[19] = local_letters[19];
-                r.letters[20] = local_letters[20]; r.letters[21] = local_letters[21];
-                r.letters[22] = local_letters[22]; r.letters[23] = local_letters[23];
-                r.letters[24] = local_letters[24]; r.letters[25] = local_letters[25];
-    
-                r.digits[0] = local_digits[0]; r.digits[1] = local_digits[1];
-                r.digits[2] = local_digits[2]; r.digits[3] = local_digits[3];
-                r.digits[4] = local_digits[4]; r.digits[5] = local_digits[5];
-                r.digits[6] = local_digits[6]; r.digits[7] = local_digits[7];
-                r.digits[8] = local_digits[8]; r.digits[9] = local_digits[9];
-                // write result to pipe
-                write(count_pipes[i][1], &r, sizeof(r));
-                // Exit fork on multi workers mode
-                _exit(0);
-            }
-            else {
-                for (int i = 0; i < 26; i++) letterCounts[i] = local_letters[i];
-                for (int i = 0; i < 10; i++) digitCounts[i] = local_digits[i];
-                vowelCount = local_vowelCount;
-            }
+            // unrolled copy to result struct - letters
+            r.letters[0] = local_letters[0];
+            r.letters[1] = local_letters[1];
+            r.letters[2] = local_letters[2];
+            r.letters[3] = local_letters[3];
+            r.letters[4] = local_letters[4];
+            r.letters[5] = local_letters[5];
+            r.letters[6] = local_letters[6];
+            r.letters[7] = local_letters[7];
+            r.letters[8] = local_letters[8];
+            r.letters[9] = local_letters[9];
+            r.letters[10] = local_letters[10];
+            r.letters[11] = local_letters[11];
+            r.letters[12] = local_letters[12];
+            r.letters[13] = local_letters[13];
+            r.letters[14] = local_letters[14];
+            r.letters[15] = local_letters[15];
+            r.letters[16] = local_letters[16];
+            r.letters[17] = local_letters[17];
+            r.letters[18] = local_letters[18];
+            r.letters[19] = local_letters[19];
+            r.letters[20] = local_letters[20];
+            r.letters[21] = local_letters[21];
+            r.letters[22] = local_letters[22];
+            r.letters[23] = local_letters[23];
+            r.letters[24] = local_letters[24];
+            r.letters[25] = local_letters[25];
+
+            // unrolled copy to result struct - vowels
+            r.digits[0] = local_digits[0];
+            r.digits[1] = local_digits[1];
+            r.digits[2] = local_digits[2];
+            r.digits[3] = local_digits[3];
+            r.digits[4] = local_digits[4];
+            r.digits[5] = local_digits[5];
+            r.digits[6] = local_digits[6];
+            r.digits[7] = local_digits[7];
+            r.digits[8] = local_digits[8];
+            r.digits[9] = local_digits[9];
+
+            // write result to pipe
+            r.vowelCount = local_vowelCount;
+            write(count_pipes[i][1], &r, sizeof(r));
+            _exit(0);
         }
         close(count_pipes[i][1]);
     }
 
-    if (WORKERS > 1) {
-        for (int i = 0; i < WORKERS; i++) {
-            Result r;
-            read(count_pipes[i][0], &r, sizeof(r));
-            close(count_pipes[i][0]);
+    // Run on main process only - aggregate results from workers
+    for (int i = 0; i < WORKERS; i++) {
+        Result r;
+        read(count_pipes[i][0], &r, sizeof(r));
+        close(count_pipes[i][0]);
 
-            vowelCount += r.vowelCount;
-            for (int j = 0; j < 26; j++) letterCounts[j] += r.letters[j];
-            for (int j = 0; j < 10; j++) digitCounts[j] += r.digits[j];
-            waitpid(count_pids[i], NULL, 0);
-        }
+        vowelCount += r.vowelCount;
+        for (int j = 0; j < 26; j++) letterCounts[j] += r.letters[j];
+        for (int j = 0; j < 10; j++) digitCounts[j] += r.digits[j];
+        waitpid(count_pids[i], NULL, 0);
+    }
+
+count_parent_only:
+    if (WORKERS == 1) {
+        vowelCount = calculateCountsSingleProcess(buf, size);
     }
 
     // --- FORKS RESULT CONTROLLER ---
