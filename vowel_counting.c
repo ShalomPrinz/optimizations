@@ -930,25 +930,61 @@ int* getDigitCounts() {
 }
 
 void printAllStats(int vowelCount) {
-    printf("Vowel count: %d, Letters: [", vowelCount);
+    char buffer[1024];
+    char* ptr = buffer;
     
-    bool first = true;
+    // vowels
+    ptr += sprintf(ptr, "Vowel count: %d, Letters: [", vowelCount);
+
+    // letters
+    int first = 1;
     for (int i = 0; i < 26; i++) {
         if (letterCounts[i] > 0) {
-            if (!first) printf(", ");
-            printf("(%c,%d)", 'a' + i, letterCounts[i]);
-            first = false;
+            if (!first) {
+                *ptr++ = ',';
+                *ptr++ = ' ';
+            }
+            *ptr++ = '(';
+            *ptr++ = 'a' + i;
+            *ptr++ = ',';
+            ptr += sprintf(ptr, "%d", letterCounts[i]);
+            *ptr++ = ')';
+            first = 0;
         }
     }
     
-    printf("], Digits: [");
-    first = true;
+    *ptr++ = ']';
+    *ptr++ = ',';
+    *ptr++ = ' ';
+    *ptr++ = 'D';
+    *ptr++ = 'i';
+    *ptr++ = 'g';
+    *ptr++ = 'i';
+    *ptr++ = 't';
+    *ptr++ = 's';
+    *ptr++ = ':';
+    *ptr++ = ' ';
+    *ptr++ = '[';
+    
+    // digits
+    first = 1;
     for (int i = 0; i < 10; i++) {
         if (digitCounts[i] > 0) {
-            if (!first) printf(", ");
-            printf("(%d,%d)", i, digitCounts[i]);
-            first = false;
+            if (!first) {
+                *ptr++ = ',';
+                *ptr++ = ' ';
+            }
+            *ptr++ = '(';
+            *ptr++ = '0' + i;
+            *ptr++ = ',';
+            ptr += sprintf(ptr, "%d", digitCounts[i]);
+            *ptr++ = ')';
+            first = 0;
         }
     }
-    printf("]\n");
+    
+    *ptr++ = ']';
+    *ptr++ = '\n';
+    *ptr = '\0';    
+    fwrite(buffer, 1, ptr - buffer, stdout);
 }
