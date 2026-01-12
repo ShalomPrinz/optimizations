@@ -319,13 +319,263 @@ parent_only:
 // Find the position with highest Hamming match to 100 digits of pi
 // Hamming match = count of positions where characters match (ignores mismatches in between)
 void findBestHammingMatch(char* buf, int size) {
-    int bestIndex = -1;
-    int bestHammingScore = 0;
+    // num of parallel forks
+    int NUM_PROCESSES = 32;
+
+    // init
+    int searchSpace = size - 100;
+    int chunk_size = searchSpace / NUM_PROCESSES;
+    pid_t pids[NUM_PROCESSES];
+    int finalBestScore = 0;
+    int winningForkId = -1;
     
-    // Check every possible starting position in buffer
-    char *bufptr = buf;
-    char *end = buf + size - 100;
-    while (bufptr++ < end) {
+    // Create NUM_PROCESSES child processes, each calculates its own chunk
+    for (int proc_id = 0; proc_id < NUM_PROCESSES; proc_id++) {
+        pid_t pid = fork();
+
+        // means failed to start new fork
+        if (pid < 0) {
+            for (int j = 0; j < proc_id; j++) {
+                kill(pids[j], SIGKILL);
+                wait(NULL);
+            }
+            // for simplicity, just reduce to single process
+            NUM_PROCESSES = 1;
+            finalBestScore = 0;
+            goto hamming_parent_only;
+        }
+        
+        // fork started successfully
+        if (pid == 0) {
+            // Child process: handle chunk proc_id
+            int start = proc_id * chunk_size;
+            int end = (proc_id == NUM_PROCESSES - 1) ? searchSpace : (start + chunk_size);
+            
+            int bestHammingScore = 0;
+            
+            char *bufptr = buf + start - 1;
+            char *chunk_end = buf + end;
+
+            while (bufptr++ < chunk_end) {
+                int hammingScore = 0;
+                char *ptr = bufptr;
+                char *piPtr = (char*)piDigits;
+                
+                // Process 8 bytes at a time using 64 bit int
+                uint64_t buf_word = *(uint64_t*)(ptr);
+                uint64_t pi_word = *(uint64_t*)(piPtr);
+                
+                // XOR: matching bytes = 0, otherwise non zero
+                uint64_t t = buf_word ^ pi_word;
+                // inisde each byte - propagate any set bits to MSB in byte
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                // save only LSB of each byte 
+                t &= 0x0101010101010101;
+                // invert - now matching bytes have 0x01, non-matching have 0x00
+                t = 0x0101010101010101 - t;
+                // sum up all bytes
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                
+                // Unroll a constant loop (piDigits is always 100 bytes)
+                // bytes 8-15
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 16-23
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 24-31
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 32-39
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 40-47
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 48-55
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 56-63
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 64-71
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 72-79
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 80-87
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+                // bytes 88-95
+                ptr += 8;
+                piPtr += 8;
+                buf_word = *(uint64_t*)(ptr);
+                pi_word = *(uint64_t*)(piPtr);
+                t = buf_word ^ pi_word;
+                t |= t >> 1;
+                t |= t >> 2;
+                t |= t >> 4;
+                t &= 0x0101010101010101;
+                t = 0x0101010101010101 - t;
+                hammingScore += (t * 0x0101010101010101) >> 56;
+
+                // bytes 96-99
+                // Process remaining 4 bytes with 32 bit int
+                uint32_t buf_word32 = *(uint32_t*)(ptr + 8);
+                uint32_t pi_word32 = *(uint32_t*)(piPtr + 8);
+
+                // Same xor logic as above just in 32 bits
+                uint32_t t32 = buf_word32 ^ pi_word32;
+                t32 |= t32 >> 1;
+                t32 |= t32 >> 2;
+                t32 |= t32 >> 4;
+                t32 &= 0x01010101;
+                t32 = 0x01010101 - t32;
+                hammingScore += (t32 * 0x01010101) >> 24;
+                
+                // save best score
+                if (hammingScore > bestHammingScore) {
+                    bestHammingScore = hammingScore;
+                }
+            }
+            
+            // Exit with best hamming score in current chunk
+            _exit(bestHammingScore);
+        }
+        
+        pids[proc_id] = pid;
+    }
+    
+    // Parent: wait for all forks and collect results    
+    for (int i = 0; i < NUM_PROCESSES; i++) {
+        int status;
+        pid_t finished_pid = wait(&status);
+        
+        if (WIFEXITED(status)) {
+            int child_score = WEXITSTATUS(status);
+            
+            // Find which fork this was (needed for exact search later)
+            int fork_id = -1;
+            for (int j = 0; j < NUM_PROCESSES; j++) {
+                if (pids[j] == finished_pid) {
+                    fork_id = j;
+                    break;
+                }
+            }
+            
+            if (child_score > finalBestScore) {
+                finalBestScore = child_score;
+                // save winning id to use as chunk start for exact search
+                winningForkId = fork_id;
+            }
+        }
+    }
+    
+hamming_parent_only:
+    // Now recalculate winning fork's chunk to find exact index
+    // if NUM_PROCESSES == 1, just search entire space here because forks failed
+    const bool ONLY_PARENT = (NUM_PROCESSES == 1);
+    int winning_start = ONLY_PARENT ? 0 : winningForkId * chunk_size;
+    int winning_end = (ONLY_PARENT || winningForkId == NUM_PROCESSES - 1) ? searchSpace : (winning_start + chunk_size);
+    
+    int bestIndex = -1;
+    char *bufptr = buf + winning_start - 1;
+    char *winning_chunk_end = buf + winning_end;
+    
+    while (bufptr++ < winning_chunk_end) {
         int hammingScore = 0;
         char *ptr = bufptr;
         char *piPtr = (char*)piDigits;
@@ -495,14 +745,20 @@ void findBestHammingMatch(char* buf, int size) {
         t32 = 0x01010101 - t32;
         hammingScore += (t32 * 0x01010101) >> 24;
 
-        if (hammingScore > bestHammingScore) {
-            bestHammingScore = hammingScore;
+        if (!ONLY_PARENT) {
+            if (hammingScore == finalBestScore) {
+                bestIndex = bufptr - buf;
+                // Exit while loop if got to best score
+                break;
+            }
+        } else if (hammingScore > finalBestScore) { // must calc score from scratch in ONLY_PARENT mode
+            finalBestScore = hammingScore;
             bestIndex = bufptr - buf;
         }
     }
     
     // Print results
-    printf("=== Best Hamming Match to Pi (100 digits) ===\nBest index: %d\nHamming score: %d/100 matches\n", bestIndex, bestHammingScore);    
+    printf("=== Best Hamming Match to Pi (100 digits) ===\nBest index: %d\nHamming score: %d/100 matches\n", bestIndex, finalBestScore);    
     if (bestIndex >= 0) {
         // Print character-by-character comparison
         printf("Character-by-character comparison:\nPi:  ");
