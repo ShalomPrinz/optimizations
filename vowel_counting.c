@@ -763,7 +763,7 @@ hamming_parent_only:
     if (bestIndex >= 0) {
         // Print character-by-character comparison
         fwrite("Character-by-character comparison:\nPi:  3141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117067\nBuf: ",
-            1, 147, stdout);
+            1, 146, stdout);
         
         char *bestbufptr = buf + bestIndex;
         fwrite(bestbufptr, 1, 100, stdout);
