@@ -106,303 +106,115 @@ Result calculateCountsSingleProcess(char* buf, int size) {
 int countVowels(char* buf, int size) {
     /*
         Short strategy explanation:
-            1. Create 3 forks, one for each heavy task (pi, hamming, sparse)
-            2. Run remaining task (counting) in main process
-            3. Wait for all forks to complete, print their results in order using pipes
-            4. Return requested value - vowel count
+            1. Create 4 forks, one for each heavy task (count, hamming, pi, sparse)
+            2. Wait for all forks to complete, print their results in order using pipes
+            3. Return requested value - vowel count
+
+        Note - creating forks not in the original order to maximize speed,
+            and assures correct printing order using pipes.
     */
-    
-    // --- FORK 1: PI ---
-    // create pi pipe
-    int p1[2];
-    pipe(p1);
-    // create pi fork
-    pid_t pi_fork_pid = fork();
-    if (pi_fork_pid == 0) {
-        // INLINE START - findLongestPiMatch(buf, size);
-        int PI_NUM_PROCESSES = 16;
-        int pi_chunk_size = size >> 4;
-        pid_t pi_pids[PI_NUM_PROCESSES - 1];
-        
-        // Create child processes
-        for (int proc_id = 0; proc_id < PI_NUM_PROCESSES - 1; proc_id++) {
-            pid_t pid = fork();
-            
-            if (pid < 0) {
-                // Fork failed, kill any children already created
-                for (int j = 0; j < proc_id; j++) {
-                    kill(pi_pids[j], SIGKILL);
-                    waitpid(pi_pids[j], NULL, 0);
-                }
-                // for simplicity, just reduce to single process
-                PI_NUM_PROCESSES = 1;
-                goto parent_only;
-            }
-            
-            if (pid == 0) {
-                // handle chunk proc_id
-                int start = proc_id * pi_chunk_size;
-                int end = start + pi_chunk_size;
-                
-                int longestMatch = 0;
-                char* current_pos = buf + start;
-                int remaining_size = end - start;
-                
-                while (remaining_size--) {
-                    // early exit
-                    if (remaining_size + 1 <= longestMatch) break;
-                    
-                    int currentMatch = 0;
-                    const char* p_buf = current_pos;
-                    const char* p_pi = piDigits;
-                    
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++;
-                    if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
-                    }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
-                    
-                    if (currentMatch > longestMatch) {
-                        longestMatch = currentMatch;
-                    }
-                    
-                    current_pos++;
-                }
-                
-                // Exit with result (limited to 0-255 but assume piDigits is 100 chars)
-                _exit(longestMatch);
-            }
-            
-            // Parent stores child PID
-            pi_pids[proc_id] = pid;
-        }
-        
-    parent_only:
-        // Parent process: handle last chunk
-        int parent_id = PI_NUM_PROCESSES - 1;
-        int start = parent_id * pi_chunk_size;
-        int end = size;
-        
-        int longestMatch = 0;
-        char* current_pos = buf + start;
-        int remaining_size = end - start;
-        
-        while (remaining_size--) {
-            // early exit
-            if (remaining_size + 1 <= longestMatch) break;
-            
-            int currentMatch = 0;
-            const char* p_buf = current_pos;
-            const char* p_pi = piDigits;
-            
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++;
-            if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
-            }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
-            
-            if (currentMatch > longestMatch) {
-                longestMatch = currentMatch;
-            }
-            
-            current_pos++;
-        }
-        
-        int longestPiMatch = longestMatch;
-        
-        // Wait for all children and collect results
-        for (int i = 0; i < PI_NUM_PROCESSES - 1; i++) {
-            int status;
-            waitpid(pi_pids[i], &status, 0);
-            
-            if (WIFEXITED(status)) {
-                int child_result = WEXITSTATUS(status);
-                if (child_result > longestPiMatch) {
-                    longestPiMatch = child_result;
-                }
-            }
-        }
-        
-        // INLINE END - findLongestPiMatch(buf, size);
-        char pi_pipe_buf;
-        read(p1[0], &pi_pipe_buf, 1); // Wait for parent signal, and then print result
-        printf("Longest pi digit match found: %d characters\n", longestPiMatch);
-        fflush(stdout);
-        _exit(0);
+
+    // --- FORK 1: COUNT ---
+    int WORKERS = 8;
+    size_t chunk = size >> 3;
+    int count_pipes[WORKERS][2];
+    pid_t count_pids[WORKERS];
+    // open pipes for all count_pipes in main process (bubbles to forks)
+    for (int i = 0; i < WORKERS; i++) {
+        pipe(count_pipes[i]);
     }
-    
+
+    // fork count_fork_pid to do the most heavy task
+    pid_t count_fork_pid = fork();
+    if (count_fork_pid == 0) {
+        for (int i = 0; i < WORKERS; i++) {
+            count_pids[i] = fork();
+
+            if (count_pids[i] < 0) {
+                // Fork failed - kill all previous forks
+                for (int j = 0; j < i; j++) {
+                    kill(count_pids[j], SIGKILL);
+                    waitpid(count_pids[j], NULL, 0);
+                }
+                // Here I'm not in a created fork - but I'm in count_fork_pid
+                // so I exit with error code and expect main process to calculate manually
+                _exit(1);
+            }
+
+            if (count_pids[i] == 0) {
+                // current fork shouldn't read from its pipe
+                close(count_pipes[i][0]);
+
+                Result r = {0};
+                size_t off = i * chunk;
+                size_t current_chunk_size = (i == WORKERS-1) ? size - off : chunk;
+                
+                int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
+                char *count_ptr = buf + off;
+                while (current_chunk_size >= 8) {
+                    // load eight bytes and than separate them by bitwise operations
+                    uint64_t eight = *(uint64_t*)(count_ptr);
+                    unsigned char i0 = char_info[eight & 0xFF];
+                    unsigned char i1 = char_info[(eight >> 8) & 0xFF];
+                    unsigned char i2 = char_info[(eight >> 16) & 0xFF];
+                    unsigned char i3 = char_info[(eight >> 24) & 0xFF];
+                    unsigned char i4 = char_info[(eight >> 32) & 0xFF];
+                    unsigned char i5 = char_info[(eight >> 40) & 0xFF];
+                    unsigned char i6 = char_info[(eight >> 48) & 0xFF];
+                    unsigned char i7 = char_info[(eight >> 56) & 0xFF];
+
+                    // calculate vowel count for all bytes
+                    v0 += IS_VOWEL(i0) + IS_VOWEL(i1);
+                    v1 += IS_VOWEL(i2) + IS_VOWEL(i3);
+                    v2 += IS_VOWEL(i4) + IS_VOWEL(i5);
+                    v3 += IS_VOWEL(i6) + IS_VOWEL(i7);
+
+                    // update letter and digit counts
+                    r.letters[i0 >> 3] += IS_LETTER(i0);
+                    r.letters[i1 >> 3] += IS_LETTER(i1);
+                    r.letters[i2 >> 3] += IS_LETTER(i2);
+                    r.letters[i3 >> 3] += IS_LETTER(i3);
+                    r.letters[i4 >> 3] += IS_LETTER(i4);
+                    r.letters[i5 >> 3] += IS_LETTER(i5);
+                    r.letters[i6 >> 3] += IS_LETTER(i6);
+                    r.letters[i7 >> 3] += IS_LETTER(i7);
+                    r.digits[i0 >> 3] += IS_DIGIT(i0);
+                    r.digits[i1 >> 3] += IS_DIGIT(i1);
+                    r.digits[i2 >> 3] += IS_DIGIT(i2);
+                    r.digits[i3 >> 3] += IS_DIGIT(i3);
+                    r.digits[i4 >> 3] += IS_DIGIT(i4);
+                    r.digits[i5 >> 3] += IS_DIGIT(i5);
+                    r.digits[i6 >> 3] += IS_DIGIT(i6);
+                    r.digits[i7 >> 3] += IS_DIGIT(i7);
+
+                    count_ptr += 8;
+                    current_chunk_size -= 8;
+                }
+
+                r.vowelCount = v0 + v1 + v2 + v3;
+
+                // Clean up remaining bytes
+                while (current_chunk_size--) {
+                    unsigned char info = char_info[*count_ptr++];
+                    r.letters[info >> 3] += IS_LETTER(info);
+                    r.digits[info >> 3] += IS_DIGIT(info);
+                    r.vowelCount += IS_VOWEL(info);
+                }            
+
+                // write result to pipe
+                write(count_pipes[i][1], &r, sizeof(r));
+                close(count_pipes[i][1]);
+                _exit(0);
+            }
+        }
+        // exit count_fork_pid after all work is done
+        // exit status 0 - signal everything worked as expected
+        _exit(0);
+    } else if (count_fork_pid < 0) {
+        // I'm in main process and count_fork failed to start: set mode to parent only
+        WORKERS = 1;
+    }
+
     // --- FORK 2: HAMMING ---
     // create hamming pipe
     int p2[2];
@@ -881,8 +693,299 @@ int countVowels(char* buf, int size) {
         fflush(stdout);
         _exit(0);
     }
+    
+    // --- FORK 3: PI ---
+    // create pi pipe
+    int p1[2];
+    pipe(p1);
+    // create pi fork
+    pid_t pi_fork_pid = fork();
+    if (pi_fork_pid == 0) {
+        // INLINE START - findLongestPiMatch(buf, size);
+        int PI_NUM_PROCESSES = 16;
+        int pi_chunk_size = size >> 4;
+        pid_t pi_pids[PI_NUM_PROCESSES - 1];
+        
+        // Create child processes
+        for (int proc_id = 0; proc_id < PI_NUM_PROCESSES - 1; proc_id++) {
+            pid_t pid = fork();
+            
+            if (pid < 0) {
+                // Fork failed, kill any children already created
+                for (int j = 0; j < proc_id; j++) {
+                    kill(pi_pids[j], SIGKILL);
+                    waitpid(pi_pids[j], NULL, 0);
+                }
+                // for simplicity, just reduce to single process
+                PI_NUM_PROCESSES = 1;
+                goto parent_only;
+            }
+            
+            if (pid == 0) {
+                // handle chunk proc_id
+                int start = proc_id * pi_chunk_size;
+                int end = start + pi_chunk_size;
+                
+                int longestMatch = 0;
+                char* current_pos = buf + start;
+                int remaining_size = end - start;
+                
+                while (remaining_size--) {
+                    // early exit
+                    if (remaining_size + 1 <= longestMatch) break;
+                    
+                    int currentMatch = 0;
+                    const char* p_buf = current_pos;
+                    const char* p_pi = piDigits;
+                    
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++;
+                    if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
+                    }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+                    
+                    if (currentMatch > longestMatch) {
+                        longestMatch = currentMatch;
+                    }
+                    
+                    current_pos++;
+                }
+                
+                // Exit with result (limited to 0-255 but assume piDigits is 100 chars)
+                _exit(longestMatch);
+            }
+            
+            // Parent stores child PID
+            pi_pids[proc_id] = pid;
+        }
+        
+    parent_only:
+        // Parent process: handle last chunk
+        int parent_id = PI_NUM_PROCESSES - 1;
+        int start = parent_id * pi_chunk_size;
+        int end = size;
+        
+        int longestMatch = 0;
+        char* current_pos = buf + start;
+        int remaining_size = end - start;
+        
+        while (remaining_size--) {
+            // early exit
+            if (remaining_size + 1 <= longestMatch) break;
+            
+            int currentMatch = 0;
+            const char* p_buf = current_pos;
+            const char* p_pi = piDigits;
+            
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++;
+            if (*p_buf++ == *p_pi++) { currentMatch++; }}}}}}}}}}}}}}}}}}}}}}}
+            }}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+            
+            if (currentMatch > longestMatch) {
+                longestMatch = currentMatch;
+            }
+            
+            current_pos++;
+        }
+        
+        int longestPiMatch = longestMatch;
+        
+        // Wait for all children and collect results
+        for (int i = 0; i < PI_NUM_PROCESSES - 1; i++) {
+            int status;
+            waitpid(pi_pids[i], &status, 0);
+            
+            if (WIFEXITED(status)) {
+                int child_result = WEXITSTATUS(status);
+                if (child_result > longestPiMatch) {
+                    longestPiMatch = child_result;
+                }
+            }
+        }
+        
+        // INLINE END - findLongestPiMatch(buf, size);
+        char pi_pipe_buf;
+        read(p1[0], &pi_pipe_buf, 1); // Wait for parent signal, and then print result
+        printf("Longest pi digit match found: %d characters\n", longestPiMatch);
+        fflush(stdout);
+        _exit(0);
+    }
 
-    // --- FORK 3: SPARSE ---
+    // --- FORK 4: SPARSE ---
     // create sparse pipe
     int p3[2];
     pipe(p3);
@@ -942,109 +1045,24 @@ int countVowels(char* buf, int size) {
         _exit(0);
     }
 
-    // --- FORK 4: COUNT ---
-    int WORKERS = 8;
-    size_t chunk = size >> 3;
-    int count_pipes[WORKERS][2];
-    pid_t count_pids[WORKERS];
-    // open pipes for all count_pipes in main process (bubbles to forks)
-    for (int i = 0; i < WORKERS; i++) {
-        pipe(count_pipes[i]);
-    }
+    // --- FORKS RESULT CONTROLLER ---
+    // Print pi result
+    write(p1[1], "G", 1);
+    close(p1[1]);
+    waitpid(pi_fork_pid, NULL, 0);
 
-    // fork count_fork_pid to do the most heavy task
-    pid_t count_fork_pid = fork();
-    if (count_fork_pid == 0) {
-        for (int i = 0; i < WORKERS; i++) {
-            count_pids[i] = fork();
+    // Print hamming result
+    write(p2[1], "G", 1);
+    close(p2[1]);
+    waitpid(hamming_fork_pid, NULL, 0);
+    
+    // Print sparse result
+    write(p3[1], "G", 1);
+    close(p3[1]);
+    waitpid(sparse_fork_pid, NULL, 0);
 
-            if (count_pids[i] < 0) {
-                // Fork failed - kill all previous forks
-                for (int j = 0; j < i; j++) {
-                    kill(count_pids[j], SIGKILL);
-                    waitpid(count_pids[j], NULL, 0);
-                }
-                // Here I'm not in a created fork - but I'm in count_fork_pid
-                // so I exit with error code and expect main process to calculate manually
-                _exit(1);
-            }
-
-            if (count_pids[i] == 0) {
-                // current fork shouldn't read from its pipe
-                close(count_pipes[i][0]);
-
-                Result r = {0};
-                size_t off = i * chunk;
-                size_t current_chunk_size = (i == WORKERS-1) ? size - off : chunk;
-                
-                int v0 = 0, v1 = 0, v2 = 0, v3 = 0;
-                char *count_ptr = buf + off;
-                while (current_chunk_size >= 8) {
-                    // load eight bytes and than separate them by bitwise operations
-                    uint64_t eight = *(uint64_t*)(count_ptr);
-                    unsigned char i0 = char_info[eight & 0xFF];
-                    unsigned char i1 = char_info[(eight >> 8) & 0xFF];
-                    unsigned char i2 = char_info[(eight >> 16) & 0xFF];
-                    unsigned char i3 = char_info[(eight >> 24) & 0xFF];
-                    unsigned char i4 = char_info[(eight >> 32) & 0xFF];
-                    unsigned char i5 = char_info[(eight >> 40) & 0xFF];
-                    unsigned char i6 = char_info[(eight >> 48) & 0xFF];
-                    unsigned char i7 = char_info[(eight >> 56) & 0xFF];
-
-                    // calculate vowel count for all bytes
-                    v0 += IS_VOWEL(i0) + IS_VOWEL(i1);
-                    v1 += IS_VOWEL(i2) + IS_VOWEL(i3);
-                    v2 += IS_VOWEL(i4) + IS_VOWEL(i5);
-                    v3 += IS_VOWEL(i6) + IS_VOWEL(i7);
-
-                    // update letter and digit counts
-                    r.letters[i0 >> 3] += IS_LETTER(i0);
-                    r.letters[i1 >> 3] += IS_LETTER(i1);
-                    r.letters[i2 >> 3] += IS_LETTER(i2);
-                    r.letters[i3 >> 3] += IS_LETTER(i3);
-                    r.letters[i4 >> 3] += IS_LETTER(i4);
-                    r.letters[i5 >> 3] += IS_LETTER(i5);
-                    r.letters[i6 >> 3] += IS_LETTER(i6);
-                    r.letters[i7 >> 3] += IS_LETTER(i7);
-                    r.digits[i0 >> 3] += IS_DIGIT(i0);
-                    r.digits[i1 >> 3] += IS_DIGIT(i1);
-                    r.digits[i2 >> 3] += IS_DIGIT(i2);
-                    r.digits[i3 >> 3] += IS_DIGIT(i3);
-                    r.digits[i4 >> 3] += IS_DIGIT(i4);
-                    r.digits[i5 >> 3] += IS_DIGIT(i5);
-                    r.digits[i6 >> 3] += IS_DIGIT(i6);
-                    r.digits[i7 >> 3] += IS_DIGIT(i7);
-
-                    count_ptr += 8;
-                    current_chunk_size -= 8;
-                }
-
-                r.vowelCount = v0 + v1 + v2 + v3;
-
-                // Clean up remaining bytes
-                while (current_chunk_size--) {
-                    unsigned char info = char_info[*count_ptr++];
-                    r.letters[info >> 3] += IS_LETTER(info);
-                    r.digits[info >> 3] += IS_DIGIT(info);
-                    r.vowelCount += IS_VOWEL(info);
-                }            
-
-                // write result to pipe
-                write(count_pipes[i][1], &r, sizeof(r));
-                close(count_pipes[i][1]);
-                _exit(0);
-            }
-        }
-        // exit count_fork_pid after all work is done
-        // exit status 0 - signal everything worked as expected
-        _exit(0);
-    } else if (count_fork_pid < 0) {
-        // I'm in main process and count_fork failed to start: set mode to parent only
-        WORKERS = 1;
-    }
-
-    // Run on main process only - aggregate results from count_fork_pid workers
-    // wait for count_fork_pid to end
+    // Collect count results
+    // wait for count_fork_pid to end and get its status
     int count_fork_status;
     waitpid(count_fork_pid, &count_fork_status, 0);
     int count_exit_status = 0;
@@ -1069,22 +1087,6 @@ int countVowels(char* buf, int size) {
         for (int j = 0; j < 26; j++) letterCounts[j] += r.letters[j];
         for (int j = 0; j < 10; j++) digitCounts[j] += r.digits[j];
     }
-
-    // --- FORKS RESULT CONTROLLER ---
-    // Print pi result
-    write(p1[1], "G", 1);
-    close(p1[1]);
-    waitpid(pi_fork_pid, NULL, 0);
-
-    // Print hamming result
-    write(p2[1], "G", 1);
-    close(p2[1]);
-    waitpid(hamming_fork_pid, NULL, 0);
-    
-    // Print sparse result
-    write(p3[1], "G", 1);
-    close(p3[1]);
-    waitpid(sparse_fork_pid, NULL, 0);
 
     return vowelCount;
 }
