@@ -1072,15 +1072,84 @@ int countVowels(char* buf, int size) {
     int vowelCount = 0;
     // aggregate results from count_fork_pid workers only on success
     if (count_exit_status == 0 && WORKERS > 1) {
-        for (int i = 0; i < WORKERS; i++) {
-            Result r;
-            read(count_pipes[i][0], &r, sizeof(r));
-            close(count_pipes[i][0]);
-    
-            vowelCount += r.vowelCount;
-            for (int j = 0; j < 26; j++) letterCounts[j] += r.letters[j];
-            for (int j = 0; j < 10; j++) digitCounts[j] += r.digits[j];
-        }
+        int local_letters[26] = {0};
+        int local_digits[10] = {0};
+        Result r;
+
+        // define acc for a single worker
+        #define PROCESS_WORKER(idx) \
+            read(count_pipes[idx][0], &r, sizeof(r)); \
+            close(count_pipes[idx][0]); \
+            vowelCount += r.vowelCount; \
+            local_letters[0]  += r.letters[0];  local_letters[1]  += r.letters[1];  \
+            local_letters[2]  += r.letters[2];  local_letters[3]  += r.letters[3];  \
+            local_letters[4]  += r.letters[4];  local_letters[5]  += r.letters[5];  \
+            local_letters[6]  += r.letters[6];  local_letters[7]  += r.letters[7];  \
+            local_letters[8]  += r.letters[8];  local_letters[9]  += r.letters[9];  \
+            local_letters[10] += r.letters[10]; local_letters[11] += r.letters[11]; \
+            local_letters[12] += r.letters[12]; local_letters[13] += r.letters[13]; \
+            local_letters[14] += r.letters[14]; local_letters[15] += r.letters[15]; \
+            local_letters[16] += r.letters[16]; local_letters[17] += r.letters[17]; \
+            local_letters[18] += r.letters[18]; local_letters[19] += r.letters[19]; \
+            local_letters[20] += r.letters[20]; local_letters[21] += r.letters[21]; \
+            local_letters[22] += r.letters[22]; local_letters[23] += r.letters[23]; \
+            local_letters[24] += r.letters[24]; local_letters[25] += r.letters[25]; \
+            local_digits[0] += r.digits[0]; local_digits[1] += r.digits[1]; \
+            local_digits[2] += r.digits[2]; local_digits[3] += r.digits[3]; \
+            local_digits[4] += r.digits[4]; local_digits[5] += r.digits[5]; \
+            local_digits[6] += r.digits[6]; local_digits[7] += r.digits[7]; \
+            local_digits[8] += r.digits[8]; local_digits[9] += r.digits[9];
+
+        // unroll the acc loop
+        PROCESS_WORKER(0);
+        PROCESS_WORKER(1);
+        PROCESS_WORKER(2);
+        PROCESS_WORKER(3);
+        PROCESS_WORKER(4);
+        PROCESS_WORKER(5);
+        PROCESS_WORKER(6);
+        PROCESS_WORKER(7);
+        #undef PROCESS_WORKER
+
+        // write to global letterCounts, unrolled
+        letterCounts[0] = local_letters[0];
+        letterCounts[1] = local_letters[1];
+        letterCounts[2] = local_letters[2];
+        letterCounts[3] = local_letters[3];
+        letterCounts[4] = local_letters[4];
+        letterCounts[5] = local_letters[5];
+        letterCounts[6] = local_letters[6];
+        letterCounts[7] = local_letters[7];
+        letterCounts[8] = local_letters[8];
+        letterCounts[9] = local_letters[9];
+        letterCounts[10] = local_letters[10];
+        letterCounts[11] = local_letters[11];
+        letterCounts[12] = local_letters[12];
+        letterCounts[13] = local_letters[13];
+        letterCounts[14] = local_letters[14];
+        letterCounts[15] = local_letters[15];
+        letterCounts[16] = local_letters[16];
+        letterCounts[17] = local_letters[17];
+        letterCounts[18] = local_letters[18];
+        letterCounts[19] = local_letters[19];
+        letterCounts[20] = local_letters[20];
+        letterCounts[21] = local_letters[21];
+        letterCounts[22] = local_letters[22];
+        letterCounts[23] = local_letters[23];
+        letterCounts[24] = local_letters[24];
+        letterCounts[25] = local_letters[25];
+
+        // write to global digitCounts, unrolled
+        digitCounts[0] = local_digits[0];
+        digitCounts[1] = local_digits[1];
+        digitCounts[2] = local_digits[2];
+        digitCounts[3] = local_digits[3];
+        digitCounts[4] = local_digits[4];
+        digitCounts[5] = local_digits[5];
+        digitCounts[6] = local_digits[6];
+        digitCounts[7] = local_digits[7];
+        digitCounts[8] = local_digits[8];
+        digitCounts[9] = local_digits[9];
     } else {
         Result r = calculateCountsSingleProcess(buf, size);
         vowelCount += r.vowelCount;
